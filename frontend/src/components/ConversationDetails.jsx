@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Phone, Sparkles, User } from 'lucide-react';
+import { Bot, Phone, Search, Sparkles, User, X } from 'lucide-react';
 import { AppSkeletonTheme, Skeleton } from './ui/AppSkeleton.jsx';
 import InlineLoader from './ui/InlineLoader.jsx';
 import { buildPagedUrl, PAGE_SIZE, parsePagedResponse } from '../utils/pagination.js';
 import { showCopiedNumberToast, showErrorToast } from '../utils/toast.js';
 import { formatPhoneNumber, normalizePhone, toStandardE164 } from '../utils/phone.js';
 import { BACKEND_URL } from '../config/api.js';
+import { decryptPayload } from '../utils/cryptoPayload.js';
 
 const messageStatusStyles = {
   delivered: 'text-emerald-300',
@@ -109,6 +110,10 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [sending, setSending] = useState(false);
   const [drafting, setDrafting] = useState(false);
+  const [showQuotePicker, setShowQuotePicker] = useState(false);
+  const [partSearch, setPartSearch] = useState('');
+  const [quoteParts, setQuoteParts] = useState([]);
+  const [loadingParts, setLoadingParts] = useState(false);
   const [notice, setNotice] = useState('');
   const timelineEndRef = useRef(null);
   const scrollRef = useRef(null);
@@ -316,17 +321,18 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
   };
 
   const sendMessage = async (event) => {
-    event.preventDefault();
-    const trimmedBody = messageBody.trim();
+    event?.preventDefault();
+    const isQuote = typeof event === 'string';
+    const trimmedBody = (isQuote ? event : messageBody).trim();
     if (!trimmedBody && !imageFile && suggestedMediaUrls.length === 0) return;
 
     try {
       setSending(true);
       setNotice('');
 
-      let mediaUrls = [...suggestedMediaUrls];
+      let mediaUrls = isQuote ? [] : [...suggestedMediaUrls];
 
-      if (imageFile) {
+      if (imageFile && !isQuote) {
         const uploadRes = await fetch(`${BACKEND_URL}/api/messages/upload-image`, {
           method: 'POST',
           headers: {
@@ -381,6 +387,45 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
     } finally {
       setSending(false);
     }
+  };
+
+  useEffect(() => {
+    if (!showQuotePicker) return undefined;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setLoadingParts(true);
+        const params = new URLSearchParams({ availability: 'in stock', limit: '50', sort: 'title-asc' });
+        if (partSearch.trim()) params.set('search', partSearch.trim());
+        const response = await fetch(`${BACKEND_URL}/api/parts?${params}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          signal: controller.signal
+        });
+        const raw = await response.json();
+        if (!response.ok) throw new Error(raw.message || 'Could not load parts');
+        const data = raw.encrypted ? decryptPayload(raw.payload) : raw;
+        if (!data) throw new Error('Could not read the parts catalog');
+        setQuoteParts(Array.isArray(data.parts) ? data.parts : []);
+      } catch (error) {
+        if (error.name !== 'AbortError') setNotice(error.message || 'Could not load parts');
+      } finally {
+        if (!controller.signal.aborted) setLoadingParts(false);
+      }
+    }, 250);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [showQuotePicker, partSearch]);
+
+  const sendPartQuote = (part) => {
+    const title = part.title || [part.year, part.make, part.model, part.part, part.trim].filter(Boolean).join(' ');
+    const details = [
+      part.condition && `Condition: ${part.condition}`,
+      part.mileage && `Mileage: ${part.mileage}`,
+      part.productType && `Type: ${part.productType}`
+    ].filter(Boolean);
+    const quote = `Quote for ${title}: ${part.currency || 'USD'} ${Number(part.price).toFixed(2)}.${details.length ? ` ${details.join('. ')}.` : ''} Reply if you have any questions.`;
+    setShowQuotePicker(false);
+    setNotice('');
+    sendMessage(quote);
   };
 
   if (!phoneNumber) {
@@ -597,6 +642,14 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
               )}
               <button
                 type="button"
+                onClick={() => { setNotice(''); setPartSearch(''); setShowQuotePicker(true); }}
+                disabled={sending || drafting}
+                className="conversation-quote-btn rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/20 disabled:opacity-60"
+              >
+                Send Quote
+              </button>
+              <button
+                type="button"
                 onClick={draftAiMessage}
                 disabled={drafting || sending || (!phoneNumber && !leadId)}
                 className="conversation-ai-draft-btn inline-flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-semibold text-cyan-200 transition hover:border-cyan-400 hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
@@ -614,6 +667,38 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
           </div>
         </div>
       </form>
+
+      {showQuotePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="quote-picker-title">
+          <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-gray-700 bg-[#161B28] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-800 px-5 py-4">
+              <div>
+                <h3 id="quote-picker-title" className="text-base font-semibold text-white">Choose a part to quote</h3>
+                <p className="mt-1 text-xs text-gray-400">Only in stock parts are shown.</p>
+              </div>
+              <button type="button" onClick={() => setShowQuotePicker(false)} aria-label="Close part picker" className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="p-4">
+              <label className="relative block">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                <input autoFocus value={partSearch} onChange={(event) => setPartSearch(event.target.value)} placeholder="Search parts, vehicle, year, or SKU" className="w-full rounded-xl border border-gray-700 bg-[#0F1322] py-2.5 pl-10 pr-3 text-sm text-white focus:border-emerald-500" />
+              </label>
+              <div className="mt-3 max-h-[50vh] space-y-2 overflow-auto">
+                {loadingParts ? <p className="py-8 text-center text-sm text-gray-400">Loading parts...</p> : quoteParts.length === 0 ? <p className="py-8 text-center text-sm text-gray-400">No in stock parts found.</p> : quoteParts.map((part) => (
+                  <div key={part._id} className="flex items-center justify-between gap-3 rounded-xl border border-gray-800 bg-[#0F1322] p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">{part.title || part.part || 'Part'}</p>
+                      <p className="mt-1 truncate text-xs text-gray-400">{[part.condition, part.mileage && `${part.mileage} miles`].filter(Boolean).join(' · ') || 'In stock'}</p>
+                      <p className="mt-1 text-sm font-semibold text-emerald-300">{part.currency || 'USD'} {Number(part.price).toFixed(2)}</p>
+                    </div>
+                    <button type="button" disabled={sending} onClick={() => sendPartQuote(part)} className="shrink-0 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-60">Send quote</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
