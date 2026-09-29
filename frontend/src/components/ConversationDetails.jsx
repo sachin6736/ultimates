@@ -322,8 +322,8 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
   };
 
   const sendMessage = async (event) => {
-    event?.preventDefault();
     const isQuote = typeof event === 'string';
+    if (!isQuote) event?.preventDefault?.();
     const trimmedBody = (isQuote ? event : messageBody).trim();
     if (!trimmedBody && !imageFile && suggestedMediaUrls.length === 0) return;
 
