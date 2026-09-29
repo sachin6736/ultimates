@@ -114,7 +114,6 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
   const [partSearch, setPartSearch] = useState('');
   const [quoteParts, setQuoteParts] = useState([]);
   const [loadingParts, setLoadingParts] = useState(false);
-  const [quoteDraft, setQuoteDraft] = useState('');
   const [notice, setNotice] = useState('');
   const timelineEndRef = useRef(null);
   const scrollRef = useRef(null);
@@ -372,7 +371,6 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
       setMessageBody('');
       setImageFile(null);
       setSuggestedMediaUrls([]);
-      if (isQuote) setQuoteDraft('');
       if (data.messageLog) {
         const timelineMessage = toTimelineMessage(data.messageLog);
         setTimeline((current) => upsertTimelineItem(current, timelineMessage));
@@ -426,8 +424,8 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
     ].filter(Boolean);
     const quote = `Quote for ${title}: ${part.currency || 'USD'} ${Number(part.price).toFixed(2)}.${details.length ? ` ${details.join('. ')}.` : ''} Reply if you have any questions.`;
     setShowQuotePicker(false);
+    setMessageBody(quote);
     setNotice('');
-    setQuoteDraft(quote);
   };
 
   if (!phoneNumber) {
@@ -696,28 +694,6 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
                     <button type="button" disabled={sending} onClick={() => sendPartQuote(part)} className="shrink-0 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-60">Send quote</button>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {quoteDraft && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="quote-editor-title">
-          <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-gray-700 bg-[#161B28] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-800 px-5 py-4">
-              <div>
-                <h3 id="quote-editor-title" className="text-base font-semibold text-white">Review quote SMS</h3>
-                <p className="mt-1 text-xs text-gray-400">Edit the message before sending it to {phoneNumber}.</p>
-              </div>
-              <button type="button" onClick={() => setQuoteDraft('')} aria-label="Close quote editor" className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"><X className="h-4 w-4" /></button>
-            </div>
-            <div className="space-y-3 p-5">
-              <label htmlFor="quote-sms-draft" className="block text-sm font-medium text-gray-300">SMS message</label>
-              <textarea id="quote-sms-draft" autoFocus rows={5} value={quoteDraft} onChange={(event) => setQuoteDraft(event.target.value)} className="w-full resize-y rounded-xl border border-gray-700 bg-[#0F1322] p-3 text-sm text-white focus:border-emerald-500 focus:outline-none" />
-              <p className="text-right text-xs text-gray-500">{quoteDraft.length} characters</p>
-              <div className="flex justify-end gap-2">
-                <button type="button" disabled={sending} onClick={() => setQuoteDraft('')} className="rounded-xl border border-gray-700 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-800 disabled:opacity-60">Cancel</button>
-                <button type="button" disabled={sending || !quoteDraft.trim()} onClick={async () => { const draft = quoteDraft; await sendMessage(draft); }} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60">{sending ? <InlineLoader label="Sending..." /> : 'Send SMS'}</button>
               </div>
             </div>
           </div>
