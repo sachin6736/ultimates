@@ -43,12 +43,7 @@ function Login() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <div className="flex justify-center mb-3">
-            <div className="w-12 h-12 bg-[#059669] rounded-xl flex items-center justify-center text-3xl">
-              📞
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-white">Dialio</h1>
+          <h1 className="text-3xl font-bold text-white">Ultimate</h1>
           <p className="text-gray-400 mt-2 text-sm">Professional Business Phone System</p>
         </div>
 

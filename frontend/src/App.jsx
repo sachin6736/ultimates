@@ -527,7 +527,7 @@ function App() {
           <div className="w-9 h-9 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg">
             <NavIcon type="history" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight md:text-2xl">Dialio</h1>
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">Ultimate</h1>
         </div>
 
         <nav className="flex gap-2 overflow-x-auto p-3 no-scrollbar md:flex-1 md:flex-col md:gap-1 md:overflow-visible md:p-3">

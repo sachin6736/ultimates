@@ -32,7 +32,7 @@ const server = http.createServer(app);
 app.set('trust proxy', 1);
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  ...(process.env.FRONTEND_URL || '').split(','),
   ...(process.env.FRONTEND_URLS || '').split(',')
 ]
   .map((origin) => origin?.trim())
