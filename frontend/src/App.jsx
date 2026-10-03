@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { CalendarCheck, LayoutDashboard, MessageSquare, Moon, PhoneCall, Plus, Settings as SettingsIcon, Sun, TableProperties, Users, UsersRound, Wrench } from 'lucide-react';
+import { CalendarCheck, LayoutDashboard, MessageSquare, Moon, PhoneCall, Plus, Settings as SettingsIcon, Sun, TableProperties, Users, UsersRound, Wrench, Briefcase } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Dialer from './components/Dialer.jsx';
 import CallHistory from './components/CallHistory.jsx';
@@ -10,7 +10,7 @@ import InternalMessages, { InternalMessageDetails } from './components/InternalM
 import AdminDashboard from './components/AdminDashboard.jsx';
 import FollowUps from './components/FollowUps.jsx';
 import CRM from './components/CRM.jsx';
-import Parts from './components/Parts.jsx';
+import Services from './components/Services.jsx';
 import AppToaster from './components/ui/AppToaster.jsx';
 import Settings from './pages/Settings.jsx';
 import Login from './pages/Login.jsx';
@@ -107,7 +107,8 @@ function NavIcon({ type }) {
     crm: TableProperties,
     team: UsersRound,
     followups: CalendarCheck,
-    parts: Wrench,
+    services: Briefcase,
+    parts: Briefcase,
     admin: LayoutDashboard,
     settings: SettingsIcon,
     plus: Plus,
@@ -538,7 +539,7 @@ function App() {
             { id: 'messages', label: 'Messages' },
             { id: 'team', label: 'Team Chat' },
             { id: 'followups', label: 'Follow Ups' },
-            { id: 'parts', label: 'Parts' },
+            { id: 'services', label: 'Services' },
             { id: 'settings', label: 'Settings' },
           ].map((item) => (
             <div
@@ -611,7 +612,7 @@ function App() {
       </div>
 
       {/* Middle Panel */}
-      <div className={`min-h-0 flex-1 border-r border-gray-800 bg-[#161B28] flex flex-col md:w-[390px] md:flex-none xl:w-[410px] ${activeTab === 'crm' || activeTab === 'parts' ? 'lg:hidden' : ''}`}>
+      <div className={`min-h-0 flex-1 border-r border-gray-800 bg-[#161B28] flex flex-col md:w-[390px] md:flex-none xl:w-[410px] ${activeTab === 'crm' || activeTab === 'services' ? 'lg:hidden' : ''}`}>
         <div className="h-12 border-b border-gray-800 flex items-center justify-between px-4 bg-[#1C2333] md:h-14 md:px-5">
           <h2 className="text-base font-semibold md:text-lg">
             {activeTab === 'admin' && 'Admin Dashboard'}
@@ -621,7 +622,7 @@ function App() {
             {activeTab === 'crm' && 'CRM'}
             {activeTab === 'team' && 'Team Chat'}
             {activeTab === 'followups' && 'Follow Ups'}
-            {activeTab === 'parts' && 'Parts'}
+            {activeTab === 'services' && 'Services'}
             {activeTab === 'settings' && 'Settings'}
           </h2>
           <button
@@ -666,7 +667,7 @@ function App() {
           {activeTab === 'followups' && (
             <FollowUps onDueCountChange={setDueFollowUps} currentUser={currentUser} />
           )}
-          {activeTab === 'parts' && <Parts currentUser={currentUser} />}
+          {activeTab === 'services' && <Services currentUser={currentUser} />}
           {activeTab === 'settings' && <Settings />}
         </div>
       </div>
@@ -681,9 +682,9 @@ function App() {
           <div className="h-full overflow-auto p-4 thin-scrollbar">
             <CRM />
           </div>
-        ) : activeTab === 'parts' ? (
+        ) : activeTab === 'services' ? (
           <div className="h-full overflow-auto p-4 thin-scrollbar">
-            <Parts currentUser={currentUser} />
+            <Services currentUser={currentUser} />
           </div>
         ) : activeTab === 'team' ? (
           <InternalMessageDetails

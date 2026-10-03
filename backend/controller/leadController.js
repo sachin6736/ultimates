@@ -5,14 +5,29 @@ import LeadAssignmentState from '../model/LeadAssignmentState.js';
 import { toStandardE164, buildPhonePatterns } from '../utils/phoneMatch.js';
 
 const LEAD_DISPOSITIONS = [
-  'Quoted',
-  'No Response',
-  'Wrong Number',
-  'Not Interested',
+  'New Lead',
+  'Contact Attempted',
+  'Contacted',
+  'Qualified',
+  'Proposal Sent',
+  'Negotiation',
+  'Payment Pending',
+  'Won – Client',
+  'Won - Client',
+  'Lost',
+  'Follow Up Later',
+];
+
+export const LOST_REASONS = [
   'Price too high',
-  'Part not available',
-  'Ordered',
-  'Already ordered',
+  'Went with competitor',
+  'Not interested',
+  'No response',
+  'Budget unavailable',
+  'Delayed project',
+  'Service not required',
+  'Bad / fake lead',
+  'Other',
 ];
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -79,15 +94,17 @@ export const createLead = async (req, res) => {
   try {
     const {
       name,
+      contactName,
       email,
       phone,
-      zip,
-      partRequested,
-      make,
-      model,
-      year,
-      yearMakeModel,
+      companyName,
+      serviceInterestedIn,
+      industry,
+      businessType,
+      websiteUrl,
       disposition,
+      lostReason,
+      lostReasonDetails,
       notes,
       source,
       followUpAt,
@@ -107,6 +124,14 @@ export const createLead = async (req, res) => {
     if (notes?.trim()) {
       initialNotes.push(formatNoteEntry(req, notes.trim()));
     }
+    const finalDisposition = disposition || 'New Lead';
+    const finalLostReason = finalDisposition === 'Lost' ? (lostReason?.trim() || 'Other') : '';
+    const finalLostDetails = finalDisposition === 'Lost' ? (lostReasonDetails?.trim() || '') : '';
+
+    if (finalDisposition === 'Lost') {
+      initialNotes.push(formatNoteEntry(req, `Lead created as Lost. Reason: ${finalLostReason}${finalLostDetails ? ` (${finalLostDetails})` : ''}`));
+    }
+
     if (followUpAt) {
       if (!followUpNote?.trim()) {
         return res.status(400).json({ message: 'A follow-up note is required when scheduling a follow-up' });
@@ -118,18 +143,22 @@ export const createLead = async (req, res) => {
     }
 
     const normalizedPhone = toStandardE164(phone);
+    const serviceName = serviceInterestedIn?.trim() || 'Google Ads / PPC';
+    const finalContactName = (contactName || name)?.trim();
+    const finalIndustry = (industry || businessType)?.trim() || '';
 
     const lead = await Lead.create({
-      name: name?.trim(),
+      name: finalContactName,
       email: email?.trim(),
       phone: normalizedPhone,
-      zip: zip?.trim() || '',
-      partRequested: partRequested?.trim() || '',
-      make: make?.trim() || '',
-      model: model?.trim() || '',
-      year: year?.trim() || '',
-      yearMakeModel: yearMakeModel?.trim() || '',
-      disposition: disposition || 'Quoted',
+      companyName: companyName?.trim() || '',
+      serviceInterestedIn: serviceName,
+      industry: finalIndustry,
+      businessType: finalIndustry,
+      websiteUrl: websiteUrl?.trim() || '',
+      disposition: finalDisposition,
+      lostReason: finalLostReason,
+      lostReasonDetails: finalLostDetails,
       notes: initialNotes.join('\n'),
       source: source || 'manual',
       followUpAt: followUpAt ? new Date(followUpAt) : null,
@@ -195,13 +224,16 @@ export const getLeads = async (req, res) => {
         const phonePatterns = buildPhonePatterns(term);
         filter.$or = [
           { name: regex },
+          { companyName: regex },
           { email: regex },
           { phone: { $in: phonePatterns } },
           { phone: regex },
-          { partRequested: regex },
-          { make: regex },
-          { model: regex },
-          { zip: regex },
+          { serviceInterestedIn: regex },
+          { industry: regex },
+          { websiteUrl: regex },
+          { notes: regex },
+          { lostReason: regex },
+          { lostReasonDetails: regex },
         ];
       }
     }
@@ -242,7 +274,7 @@ export const getLeads = async (req, res) => {
 
 export const updateLeadDisposition = async (req, res) => {
   try {
-    const { disposition } = req.body;
+    const { disposition, lostReason, lostReasonDetails } = req.body;
 
     if (!LEAD_DISPOSITIONS.includes(disposition)) {
       return res.status(400).json({ message: 'A valid lead status is required' });
@@ -252,19 +284,79 @@ export const updateLeadDisposition = async (req, res) => {
       ? { _id: req.params.id }
       : { _id: req.params.id, assignedTo: req.user.id };
 
-    const lead = await Lead.findOneAndUpdate(
-      leadFilter,
-      { disposition },
-      { new: true, runValidators: true }
-    );
+    const lead = await Lead.findOne(leadFilter);
 
     if (!lead) {
       return res.status(404).json({ message: 'Lead not found or unauthorized' });
     }
 
+    const previousDisposition = lead.disposition;
+    lead.disposition = disposition;
+
+    if (disposition === 'Lost') {
+      const finalLostReason = lostReason?.trim() || lead.lostReason || 'Other';
+      lead.lostReason = finalLostReason;
+      if (lostReasonDetails !== undefined) {
+        lead.lostReasonDetails = String(lostReasonDetails || '').trim();
+      }
+      appendLeadNote(
+        lead,
+        req,
+        `Status changed to Lost. Reason: ${lead.lostReason}${lead.lostReasonDetails ? ` (${lead.lostReasonDetails})` : ''}`
+      );
+    } else {
+      if (previousDisposition === 'Lost') {
+        lead.lostReason = '';
+        lead.lostReasonDetails = '';
+      }
+      appendLeadNote(lead, req, `Status changed to ${disposition}`);
+    }
+
+    await lead.save();
+
     const populatedLead = await populateLead(lead._id);
 
     res.json({ message: 'Lead status updated', lead: populatedLead });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateLeadLostReason = async (req, res) => {
+  try {
+    const { lostReason, lostReasonDetails } = req.body;
+
+    if (!lostReason || !LOST_REASONS.includes(lostReason)) {
+      return res.status(400).json({ message: 'A valid lost reason is required' });
+    }
+
+    const leadFilter = req.user?.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, assignedTo: req.user.id };
+
+    const lead = await Lead.findOne(leadFilter);
+
+    if (!lead) {
+      return res.status(404).json({ message: 'Lead not found or unauthorized' });
+    }
+
+    lead.disposition = 'Lost';
+    lead.lostReason = lostReason;
+    if (lostReasonDetails !== undefined) {
+      lead.lostReasonDetails = String(lostReasonDetails || '').trim();
+    }
+
+    appendLeadNote(
+      lead,
+      req,
+      `Lost reason updated: ${lead.lostReason}${lead.lostReasonDetails ? ` (${lead.lostReasonDetails})` : ''}`
+    );
+
+    await lead.save();
+
+    const populatedLead = await populateLead(lead._id);
+
+    res.json({ message: 'Lost reason updated', lead: populatedLead });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

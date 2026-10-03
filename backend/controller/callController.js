@@ -274,7 +274,7 @@ export const getCallLogs = async (req, res) => {
       const matchingContacts = await Contact.find(contactQuery).select('phone');
 
       const leadQuery = {
-        $or: [{ name: searchRegex }, { partRequested: searchRegex }]
+        $or: [{ name: searchRegex }, { serviceInterestedIn: searchRegex }]
       };
       const matchingLeads = await Lead.find(leadQuery).select('phone');
 

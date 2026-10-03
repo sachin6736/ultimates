@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import MessageLog from '../model/MessageLog.js';
 import Lead from '../model/Lead.js';
-import Part from '../model/Part.js';
+import Service from '../model/Service.js';
 import TwilioNumber from '../model/TwilioNumber.js';
 import { buildMessageAccessQuery } from '../utils/messageAccess.js';
 import { buildPaginatedResponse, parseBeforeDate, parseLimit } from '../utils/pagination.js';
@@ -630,21 +630,25 @@ const formatPriceForSms = (price, currency = 'USD') => {
   }).format(price);
 };
 
-const formatPartForAi = (part) => {
-  const partName = part.part || part.title || '';
-  const currency = part.currency || 'USD';
+const formatPartForAi = (item) => {
+  const name = item.name || item.title || item.part || 'Service';
+  const currency = item.currency || 'USD';
 
   return {
-    title: part.title || '',
-    make: part.make || '',
-    model: part.model || '',
-    year: part.year || '',
-    trim: part.trim || '',
-    part: partName,
-    price: part.price,
-    priceFormatted: formatPriceForSms(part.price, currency),
-    availability: part.availability || 'in stock',
-    condition: part.condition || '',
+    title: name,
+    name,
+    category: item.category || 'Digital Marketing',
+    make: item.make || '',
+    model: item.model || '',
+    year: item.year || '',
+    trim: item.trim || '',
+    part: name,
+    price: item.price,
+    priceFormatted: formatPriceForSms(item.price, currency),
+    availability: item.status === 'inactive' ? 'out of stock' : 'in stock',
+    condition: item.condition || '',
+    description: item.description || '',
+    deliverables: item.deliverables || [],
   };
 };
 
@@ -1144,24 +1148,32 @@ export const findAvailablePartsForLead = async (lead, recentMessages = []) => {
     }
   }
 
-  if (!conditions.length) {
-    return {
-      status: 'not_checked',
-      reason: 'No vehicle or part details were available to search the parts catalog.',
-      matches: [],
-      isAmbiguous: false,
-    };
+  const serviceQuery = clean(details.serviceInterestedIn || details.partRequested);
+  let matches = [];
+  if (serviceQuery) {
+    matches = await Service.find({
+      $or: [
+        { name: { $regex: escapeRegex(serviceQuery), $options: 'i' } },
+        { description: { $regex: escapeRegex(serviceQuery), $options: 'i' } },
+        { category: { $regex: escapeRegex(serviceQuery), $options: 'i' } },
+      ],
+      status: 'active',
+    })
+      .sort({ price: 1 })
+      .limit(10)
+      .lean();
   }
-
-  const matches = await Part.find({ $and: conditions })
-    .sort({ updatedAt: -1 })
-    .limit(10)
-    .lean();
+  if (!matches.length) {
+    matches = await Service.find({ status: 'active' })
+      .sort({ price: 1 })
+      .limit(10)
+      .lean();
+  }
 
   if (!matches.length) {
     return {
       status: 'not_found',
-      reason: 'No matching part record was found in the catalog.',
+      reason: 'No matching service record was found in the catalog.',
       matches: [],
       isAmbiguous: false,
       reply: 'Let me check and update you shortly.',
@@ -1169,7 +1181,7 @@ export const findAvailablePartsForLead = async (lead, recentMessages = []) => {
   }
 
   const inStockMatches = matches.filter(
-    (part) => String(part.availability || '').trim().toLowerCase() === 'in stock'
+    (item) => item.status !== 'inactive'
   );
 
   if (!inStockMatches.length) {
@@ -2017,7 +2029,7 @@ export const receiveMessage = async (req, res) => {
     const assignedUserIds = (assignedNumber?.assignedUsers || []).map((userId) => String(userId));
     const linkedLeadId = await resolveLeadForMessage({ phoneNumber: from });
     const lead = linkedLeadId
-      ? await Lead.findById(linkedLeadId).select('assignedTo name phone email zip partRequested make model year yearMakeModel disposition notes followUpAt followUpNote source').lean()
+      ? await Lead.findById(linkedLeadId).select('assignedTo name phone email companyName serviceInterestedIn industry businessType websiteUrl disposition lostReason notes followUpAt followUpNote source').lean()
       : null;
 
     const fallbackUserId = lead?.assignedTo || assignedUserIds[0] || undefined;

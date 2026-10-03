@@ -17,12 +17,15 @@ import phoneNumberRoutes from './routes/phoneNumberRoutes.js';
 import internalMessageRoutes from './routes/internalMessageRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
-import partRoutes from './routes/partRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js';
+import { ensureDefaultServices } from './controller/serviceController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-connectDB();
+connectDB().then(() => {
+  ensureDefaultServices();
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -70,7 +73,8 @@ app.use('/api/phone-numbers', phoneNumberRoutes);
 app.use('/api/internal-messages', internalMessageRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/leads', leadRoutes);
-app.use('/api/parts', partRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/parts', serviceRoutes);
 
 app.get('/', (req, res) => res.send('✅ VoIP Backend is Running'));
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));
