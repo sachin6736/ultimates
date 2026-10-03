@@ -30,7 +30,11 @@ const migrateTwilioNumberAssignments = async () => {
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error("MONGO_URI is missing or undefined. Please verify backend/.env exists and contains MONGO_URI.");
+    }
+    await mongoose.connect(uri);
     await migrateTwilioNumberAssignments();
     console.log('✅ MongoDB Connected Successfully');
   } catch (error) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Device } from '@twilio/voice-sdk';
 import { BACKEND_URL } from '../config/api.js';
  
@@ -103,6 +104,19 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
   const [isIncomingMinimized, setIsIncomingMinimized] = useState(false);
   const [shouldRenderDialer, setShouldRenderDialer] = useState(isOpen);
   const [dialerMotion, setDialerMotion] = useState(isOpen ? 'open' : 'closed');
+  const [statusSlotNode, setStatusSlotNode] = useState(() => {
+    if (typeof document !== 'undefined') {
+      return document.getElementById('dialer-status-sidebar-slot');
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (!statusSlotNode && typeof document !== 'undefined') {
+      const el = document.getElementById('dialer-status-sidebar-slot');
+      if (el) setStatusSlotNode(el);
+    }
+  }, [statusSlotNode]);
 
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
@@ -973,22 +987,41 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
           </button>
         </div>
       )}
-   {!isCalling && !incomingCall && deviceState !== DEVICE_STATES.READY && (
-        <div
-          className={`fixed bottom-4 left-4 z-[60] w-[min(360px,calc(100vw-2rem))] rounded-xl border px-4 py-3 shadow-2xl ${
-            deviceState === DEVICE_STATES.ERROR || deviceState === DEVICE_STATES.OFFLINE
-              ? 'border-amber-500/30 bg-[#1A1410]'
-              : 'border-sky-500/25 bg-[#101A28]'
-          }`}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white">
-                {deviceState === DEVICE_STATES.ERROR || deviceState === DEVICE_STATES.OFFLINE
-                  ? 'Not receiving calls'
-                  : 'Connecting phone service'}
-              </p>
-              <p className="mt-1 text-xs text-gray-300">
+    {!isCalling && !incomingCall && deviceState !== DEVICE_STATES.READY && (() => {
+        const isErrorOrOffline = deviceState === DEVICE_STATES.ERROR || deviceState === DEVICE_STATES.OFFLINE;
+        const targetSlot = statusSlotNode || (typeof document !== 'undefined' ? document.getElementById('dialer-status-sidebar-slot') : null);
+
+        const content = (
+          <div
+            className={`w-full rounded-xl border p-2.5 shadow-lg transition-all ${
+              isErrorOrOffline
+                ? 'border-amber-500/30 bg-[#1A1410]'
+                : 'border-sky-500/25 bg-[#101A28]'
+            }`}
+          >
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className={`inline-block h-2 w-2 shrink-0 rounded-full ${
+                      isErrorOrOffline ? 'bg-amber-400' : 'bg-sky-400 animate-pulse'
+                    }`}
+                  />
+                  <p className="truncate text-xs font-semibold text-white">
+                    {isErrorOrOffline ? 'Not receiving calls' : 'Connecting phone service'}
+                  </p>
+                </div>
+                {isErrorOrOffline && (
+                  <button
+                    type="button"
+                    onClick={retryDeviceRegistration}
+                    className="shrink-0 rounded-lg bg-amber-500 px-2 py-0.5 text-[11px] font-semibold text-[#1A1410] hover:bg-amber-400 transition active:scale-95"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-300 leading-snug break-words">
                 {deviceError || (
                   deviceState === DEVICE_STATES.REFRESHING
                     ? 'Refreshing connection so shared numbers keep ringing.'
@@ -996,18 +1029,47 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
                 )}
               </p>
             </div>
-            {(deviceState === DEVICE_STATES.ERROR || deviceState === DEVICE_STATES.OFFLINE) && (
-              <button
-                type="button"
-                onClick={retryDeviceRegistration}
-                className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-[#1A1410] hover:bg-amber-400"
-              >
-                Retry
-              </button>
-            )}
           </div>
-        </div>
-      )}
+        );
+
+        if (targetSlot) {
+          return createPortal(content, targetSlot);
+        }
+
+        return (
+          <div
+            className={`fixed bottom-28 left-4 z-[60] w-[min(360px,calc(100vw-2rem))] rounded-xl border px-4 py-3 shadow-2xl ${
+              isErrorOrOffline
+                ? 'border-amber-500/30 bg-[#1A1410]'
+                : 'border-sky-500/25 bg-[#101A28]'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">
+                  {isErrorOrOffline ? 'Not receiving calls' : 'Connecting phone service'}
+                </p>
+                <p className="mt-1 text-xs text-gray-300">
+                  {deviceError || (
+                    deviceState === DEVICE_STATES.REFRESHING
+                      ? 'Refreshing connection so shared numbers keep ringing.'
+                      : 'Stay on this page to receive inbound calls on shared numbers.'
+                  )}
+                </p>
+              </div>
+              {isErrorOrOffline && (
+                <button
+                  type="button"
+                  onClick={retryDeviceRegistration}
+                  className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-[#1A1410] hover:bg-amber-400"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
  
       {isCalling && isMinimized && (
         <button

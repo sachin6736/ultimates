@@ -530,7 +530,7 @@ function App() {
           <h1 className="text-xl font-bold tracking-tight md:text-2xl">Ultimate</h1>
         </div>
 
-        <nav className="flex gap-2 overflow-x-auto p-3 no-scrollbar md:flex-1 md:flex-col md:gap-1 md:overflow-visible md:p-3">
+        <nav className="flex gap-2 overflow-x-auto p-3 no-scrollbar md:flex-1 md:flex-col md:gap-1 md:overflow-y-auto thin-scrollbar md:p-3">
           {[
             ...(isAdmin ? [{ id: 'admin', label: 'Admin' }] : []),
             { id: 'history', label: 'Calls' },
@@ -586,6 +586,9 @@ function App() {
             <span className="w-5"><NavIcon type="plus" /></span>
             New Call
           </div>
+
+          {/* Slot for connection status below New Call button */}
+          <div id="dialer-status-sidebar-slot" className="empty:hidden shrink-0 w-auto min-w-[200px] md:w-full md:mt-2.5" />
         </nav>
 
         <div className="hidden p-3 border-t border-gray-800 md:block">

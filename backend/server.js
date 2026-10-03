@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import http from 'http';
 import path from 'path';
@@ -5,7 +6,6 @@ import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import callRoutes from './routes/callRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -18,8 +18,6 @@ import internalMessageRoutes from './routes/internalMessageRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
 import partRoutes from './routes/partRoutes.js';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
