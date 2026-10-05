@@ -251,9 +251,9 @@ function Contacts() {
               className="bg-gray-900 border border-gray-700 rounded-2xl p-4 flex flex-col gap-3 hover:border-[#059669] transition sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{contact.name}</p>
-                <p className="text-xs text-gray-400 truncate">{contact.phone}</p>
-                {contact.company && <p className="text-xs text-gray-500 mt-0.5 truncate">{contact.company}</p>}
+                <p className="text-sm font-semibold text-white truncate [html[data-theme='day']_&]:text-slate-900">{contact.name}</p>
+                <p className="text-xs text-gray-400 truncate [html[data-theme='day']_&]:text-slate-500">{contact.phone}</p>
+                {contact.company && <p className="crm-company-name text-xs text-gray-400 mt-0.5 truncate [html[data-theme='day']_&]:text-slate-700 font-medium">{contact.company}</p>}
               </div>
 
               <div className="flex gap-2">

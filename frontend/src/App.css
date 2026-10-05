@@ -224,6 +224,22 @@ html[data-theme="day"] .crm-page .text-white {
   color: #0f172a !important;
 }
 
+html[data-theme="day"] .crm-company-badge,
+html[data-theme="day"] .crm-page .crm-company-badge {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html[data-theme="day"] .crm-company-name,
+html[data-theme="day"] .crm-page .crm-company-name {
+  color: #1e293b !important;
+}
+
+html[data-theme="day"] .bg-gray-800\/80 {
+  background-color: #f1f5f9;
+}
+
 html[data-theme="day"] .crm-page .bg-gray-950 {
   background-color: #ffffff;
 }

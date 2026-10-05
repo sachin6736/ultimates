@@ -723,7 +723,7 @@ function CallHistory() {
                       </span>
                     )}
                     {log.contactCompany && (
-                      <span className="rounded bg-[#0F141F] px-1.5 py-0.5 text-[10px] text-gray-400 border border-gray-700/60 shrink-0">
+                      <span className="crm-company-badge rounded bg-[#0F141F] px-1.5 py-0.5 text-[10px] text-gray-400 border border-gray-700/60 shrink-0 [html[data-theme='day']_&]:border-slate-300 [html[data-theme='day']_&]:bg-slate-100 [html[data-theme='day']_&]:text-slate-700 font-medium">
                         {log.contactCompany}
                       </span>
                     )}

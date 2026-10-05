@@ -696,7 +696,7 @@ function CRM() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-300">
+              <label className="mb-1 block text-xs font-medium text-gray-300 [html[data-theme='day']_&]:text-slate-700">
                 Company Name
               </label>
               <input
@@ -704,7 +704,7 @@ function CRM() {
                 value={form.companyName || ''}
                 onChange={handleChange}
                 placeholder="Company Name"
-                className="w-full rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none [html[data-theme='day']_&]:text-slate-900"
               />
             </div>
             <div>
@@ -889,7 +889,7 @@ function CRM() {
                           {lead.name || 'Unnamed lead'}
                         </h4>
                         {lead.companyName && (
-                          <span className="rounded-md border border-gray-700 bg-gray-800/80 px-2 py-0.5 text-xs text-gray-300">
+                          <span className="crm-company-badge rounded-md border border-gray-700 bg-gray-800/80 px-2 py-0.5 text-xs text-gray-300 [html[data-theme='day']_&]:border-slate-300 [html[data-theme='day']_&]:bg-slate-100 [html[data-theme='day']_&]:text-slate-800 transition-colors">
                             {lead.companyName}
                           </span>
                         )}
@@ -969,8 +969,8 @@ function CRM() {
                             <span className="break-all font-medium text-gray-200">{lead.email || '-'}</span>
                           </p>
                           <p className="min-w-0">
-                            <span className="text-gray-500">Company:</span>{' '}
-                            <span className="font-medium text-gray-200">{lead.companyName || '-'}</span>
+                            <span className="text-gray-500 [html[data-theme='day']_&]:text-slate-500">Company:</span>{' '}
+                            <span className="crm-company-name font-medium text-gray-200 [html[data-theme='day']_&]:text-slate-800">{lead.companyName || '-'}</span>
                           </p>
                         </div>
                         <div className="grid gap-x-8 gap-y-1.5 text-gray-300 md:grid-cols-3">
