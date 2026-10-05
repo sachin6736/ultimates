@@ -267,7 +267,7 @@ function Services({ currentUser = null }) {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-[#0A0C14] p-4 text-white thin-scrollbar md:p-6">
+    <div className="services-page flex h-full flex-col overflow-y-auto bg-[#0A0C14] p-4 text-white thin-scrollbar md:p-6">
       {/* Header & Title */}
       <div className="flex flex-col gap-4 border-b border-gray-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -276,7 +276,7 @@ function Services({ currentUser = null }) {
               <Briefcase className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-white md:text-2xl">
+              <h1 className="text-xl font-bold tracking-tight text-white [html[data-theme='day']_&]:text-slate-900 md:text-2xl">
                 Services & Solutions
               </h1>
               <p className="text-xs text-gray-400 md:text-sm">
@@ -319,7 +319,7 @@ function Services({ currentUser = null }) {
             <span className="text-xs font-medium">Total Services</span>
             <Layers className="h-4 w-4 text-emerald-400" />
           </div>
-          <p className="mt-2 text-xl font-bold text-white md:text-2xl">{summary.total}</p>
+          <p className="mt-2 text-xl font-bold text-white [html[data-theme='day']_&]:text-slate-900 md:text-2xl">{summary.total}</p>
           <span className="text-[11px] text-gray-400">All catalog items</span>
         </div>
 
@@ -337,7 +337,7 @@ function Services({ currentUser = null }) {
             <span className="text-xs font-medium">Starting From</span>
             <DollarSign className="h-4 w-4 text-sky-400" />
           </div>
-          <p className="mt-2 text-xl font-bold text-white md:text-2xl">
+          <p className="mt-2 text-xl font-bold text-white [html[data-theme='day']_&]:text-slate-900 md:text-2xl">
             {formatPrice(summary.minPrice)}
           </p>
           <span className="text-[11px] text-gray-400">Entry package</span>
@@ -348,7 +348,7 @@ function Services({ currentUser = null }) {
             <span className="text-xs font-medium">Admin Controlled</span>
             <Sparkles className="h-4 w-4 text-amber-400" />
           </div>
-          <p className="mt-2 text-sm font-semibold text-white md:text-base">
+          <p className="mt-2 text-sm font-semibold text-white [html[data-theme='day']_&]:text-slate-900 md:text-base">
             {isAdmin ? 'Full Admin Access' : 'Agent (View Only)'}
           </p>
           <span className="text-[11px] text-gray-400">
@@ -376,9 +376,9 @@ function Services({ currentUser = null }) {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-xl border border-gray-700 bg-gray-900 px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="all" className="bg-[#11151F] text-gray-200">All Statuses</option>
+            <option value="active" className="bg-[#11151F] text-gray-200">Active Only</option>
+            <option value="inactive" className="bg-[#11151F] text-gray-200">Inactive Only</option>
           </select>
 
           <select
@@ -386,11 +386,11 @@ function Services({ currentUser = null }) {
             onChange={(e) => setSortBy(e.target.value)}
             className="rounded-xl border border-gray-700 bg-gray-900 px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
           >
-            <option value="newest">Newest First</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-            <option value="name_asc">Name: A to Z</option>
-            <option value="name_desc">Name: Z to A</option>
+            <option value="newest" className="bg-[#11151F] text-gray-200">Newest First</option>
+            <option value="price_asc" className="bg-[#11151F] text-gray-200">Price: Low to High</option>
+            <option value="price_desc" className="bg-[#11151F] text-gray-200">Price: High to Low</option>
+            <option value="name_asc" className="bg-[#11151F] text-gray-200">Name: A to Z</option>
+            <option value="name_desc" className="bg-[#11151F] text-gray-200">Name: Z to A</option>
           </select>
         </div>
       </div>
@@ -405,7 +405,7 @@ function Services({ currentUser = null }) {
         ) : services.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-800 bg-[#11151F]/50 p-6 text-center">
             <Briefcase className="h-10 w-10 text-gray-600" />
-            <p className="mt-3 text-base font-semibold text-white">No services found</p>
+            <p className="mt-3 text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">No services found</p>
             <p className="mt-1 text-xs text-gray-400">
               {search ? 'Try clearing your search query or filters.' : 'Add your first service package to get started.'}
             </p>
@@ -453,7 +453,7 @@ function Services({ currentUser = null }) {
                     </div>
 
                     {/* Service Name */}
-                    <h3 className="mt-3 text-base font-bold text-white transition group-hover:text-emerald-300">
+                    <h3 className="services-service-name mt-3 text-base font-bold text-white transition group-hover:text-emerald-300 [html[data-theme='day']_&]:text-slate-900">
                       {service.name}
                     </h3>
 
@@ -529,7 +529,7 @@ function Services({ currentUser = null }) {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
                   {editingService ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">
                   {editingService ? 'Edit Service' : 'Add New Service'}
                 </h3>
               </div>
@@ -558,7 +558,7 @@ function Services({ currentUser = null }) {
                     required
                   >
                     {STANDARD_SERVICES.map((opt) => (
-                      <option key={opt} value={opt}>
+                      <option key={opt} value={opt} className="bg-[#11151F] text-gray-200">
                         {opt}
                       </option>
                     ))}

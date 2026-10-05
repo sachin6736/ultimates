@@ -197,7 +197,7 @@ function LeadCallLogsDrawer({ lead, isOpen, onClose }) {
       <div className="flex h-full w-full max-w-2xl flex-col border-l border-gray-800 bg-[#0F1322] shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-gray-800 px-4 py-4">
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-semibold text-white">{lead?.name || 'Lead'}</h3>
+            <h3 className="crm-lead-name truncate text-lg font-semibold text-white [html[data-theme='day']_&]:text-slate-900">{lead?.name || 'Lead'}</h3>
             <p className="mt-1 text-sm text-gray-400">{formatPhoneNumber(phoneNumber)}</p>
           </div>
           <button

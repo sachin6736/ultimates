@@ -202,6 +202,28 @@ html[data-theme="day"] textarea::placeholder {
   color: #94a3b8;
 }
 
+/* Select dropdown options styling in Dark Theme */
+.crm-page select option,
+.services-page select option {
+  background-color: #11151F;
+  color: #e2e8f0;
+}
+
+html[data-theme="day"] .crm-page select option,
+html[data-theme="day"] .services-page select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+html[data-theme="day"] .crm-lead-name,
+html[data-theme="day"] .crm-page .crm-lead-name,
+html[data-theme="day"] .crm-page h4,
+html[data-theme="day"] .crm-page h3,
+html[data-theme="day"] .crm-page h2,
+html[data-theme="day"] .crm-page .text-white {
+  color: #0f172a !important;
+}
+
 html[data-theme="day"] .crm-page .bg-gray-950 {
   background-color: #ffffff;
 }
@@ -212,11 +234,6 @@ html[data-theme="day"] .crm-page select {
   background-color: #eef3f8;
   color: #172033;
   border-color: #cbd5e1;
-}
-
-html[data-theme="day"] .crm-page select option {
-  background-color: #ffffff;
-  color: #172033;
 }
 
 html[data-theme="day"] .crm-page .bg-gray-900,
@@ -231,12 +248,47 @@ html[data-theme="day"] .crm-page .text-emerald-300 {
 
 html[data-theme="day"] .crm-page .text-sky-200,
 html[data-theme="day"] .crm-page .text-sky-300 {
-  color: #0369a1;
+  color: #0284c7;
+}
+
+html[data-theme="day"] .crm-page .text-blue-200,
+html[data-theme="day"] .crm-page .text-blue-300 {
+  color: #2563eb;
+}
+
+html[data-theme="day"] .crm-page .text-indigo-200,
+html[data-theme="day"] .crm-page .text-indigo-300 {
+  color: #4f46e5;
+}
+
+html[data-theme="day"] .crm-page .text-purple-200,
+html[data-theme="day"] .crm-page .text-purple-300 {
+  color: #7c3aed;
+}
+
+html[data-theme="day"] .crm-page .text-teal-200,
+html[data-theme="day"] .crm-page .text-teal-300 {
+  color: #0d9488;
 }
 
 html[data-theme="day"] .crm-page .text-amber-200,
 html[data-theme="day"] .crm-page .text-amber-300 {
   color: #b45309;
+}
+
+html[data-theme="day"] .crm-page .text-orange-200,
+html[data-theme="day"] .crm-page .text-orange-300 {
+  color: #ea580c;
+}
+
+html[data-theme="day"] .crm-page .text-rose-200,
+html[data-theme="day"] .crm-page .text-rose-300 {
+  color: #e11d48;
+}
+
+html[data-theme="day"] .crm-page .text-slate-200,
+html[data-theme="day"] .crm-page .text-slate-300 {
+  color: #475569;
 }
 
 html[data-theme="day"] .crm-page .text-gray-200 {
@@ -253,21 +305,119 @@ html[data-theme="day"] .crm-page .text-gray-500 {
 }
 
 html[data-theme="day"] .crm-page .bg-emerald-500\/10,
-html[data-theme="day"] .crm-page .bg-emerald-600\/10 {
-  background-color: rgba(5, 150, 105, 0.12);
+html[data-theme="day"] .crm-page .bg-emerald-500\/15,
+html[data-theme="day"] .crm-page .bg-emerald-600\/10,
+html[data-theme="day"] .crm-page .bg-emerald-950\/50 {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
 }
 
-html[data-theme="day"] .crm-page .bg-sky-500\/10 {
-  background-color: rgba(14, 165, 233, 0.12);
+html[data-theme="day"] .crm-page .bg-sky-500\/10,
+html[data-theme="day"] .crm-page .bg-sky-950\/40 {
+  background-color: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+html[data-theme="day"] .crm-page .bg-blue-500\/10,
+html[data-theme="day"] .crm-page .bg-blue-950\/40 {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+html[data-theme="day"] .crm-page .bg-indigo-500\/10,
+html[data-theme="day"] .crm-page .bg-indigo-950\/40 {
+  background-color: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+html[data-theme="day"] .crm-page .bg-purple-500\/10,
+html[data-theme="day"] .crm-page .bg-purple-950\/40 {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+}
+
+html[data-theme="day"] .crm-page .bg-teal-500\/10,
+html[data-theme="day"] .crm-page .bg-teal-950\/40 {
+  background-color: #f0fdfa;
+  border-color: #99f6e4;
 }
 
 html[data-theme="day"] .crm-page .bg-amber-500\/10,
-html[data-theme="day"] .crm-page .bg-amber-500\/20 {
-  background-color: rgba(245, 158, 11, 0.16);
+html[data-theme="day"] .crm-page .bg-amber-500\/20,
+html[data-theme="day"] .crm-page .bg-amber-950\/40 {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+html[data-theme="day"] .crm-page .bg-orange-500\/10,
+html[data-theme="day"] .crm-page .bg-orange-950\/40 {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+}
+
+html[data-theme="day"] .crm-page .bg-rose-500\/10,
+html[data-theme="day"] .crm-page .bg-rose-950\/40 {
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+}
+
+html[data-theme="day"] .crm-page .bg-slate-500\/10,
+html[data-theme="day"] .crm-page .bg-slate-500\/15,
+html[data-theme="day"] .crm-page .bg-slate-900\/60 {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 html[data-theme="day"] .crm-page .bg-black\/60 {
   background-color: rgba(15, 23, 42, 0.38);
+}
+
+/* =========================================================
+   Services & Solutions Day Mode
+   ========================================================= */
+html[data-theme="day"] .services-page {
+  background-color: #f4f7fb;
+  color: #0f172a;
+}
+
+html[data-theme="day"] .services-page .text-white,
+html[data-theme="day"] .services-service-name {
+  color: #0f172a !important;
+}
+
+html[data-theme="day"] .services-page .text-gray-300,
+html[data-theme="day"] .services-page .text-gray-400 {
+  color: #64748b;
+}
+
+html[data-theme="day"] .services-page .bg-\[\#11151F\] {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme="day"] .services-page .bg-\[\#161B28\] {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+html[data-theme="day"] .services-page .border-gray-800,
+html[data-theme="day"] .services-page .border-gray-700 {
+  border-color: #e2e8f0;
+}
+
+html[data-theme="day"] .services-page input,
+html[data-theme="day"] .services-page textarea,
+html[data-theme="day"] .services-page select {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html[data-theme="day"] .services-page .bg-gray-800\/80,
+html[data-theme="day"] .services-page .bg-gray-800 {
+  background-color: #f1f5f9;
+  color: #475569;
 }
 
 /* =========================================================

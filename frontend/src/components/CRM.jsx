@@ -38,6 +38,77 @@ export const LEAD_DISPOSITIONS = [
   'Follow Up Later',
 ];
 
+export const DISPOSITION_STYLES = {
+  'New Lead': {
+    badge: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
+    select: 'border-sky-500/40 bg-sky-950/40 text-sky-200 focus:border-sky-400',
+    dot: 'bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.5)]',
+  },
+  'Contact Attempted': {
+    badge: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300',
+    select: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-200 focus:border-indigo-400',
+    dot: 'bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.5)]',
+  },
+  'Contacted': {
+    badge: 'border-purple-500/30 bg-purple-500/10 text-purple-300',
+    select: 'border-purple-500/40 bg-purple-950/40 text-purple-200 focus:border-purple-400',
+    dot: 'bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.5)]',
+  },
+  'Qualified': {
+    badge: 'border-teal-500/30 bg-teal-500/10 text-teal-300',
+    select: 'border-teal-500/40 bg-teal-950/40 text-teal-200 focus:border-teal-400',
+    dot: 'bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.5)]',
+  },
+  'Proposal Sent': {
+    badge: 'border-blue-500/30 bg-blue-500/10 text-blue-300',
+    select: 'border-blue-500/40 bg-blue-950/40 text-blue-200 focus:border-blue-400',
+    dot: 'bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.5)]',
+  },
+  'Negotiation': {
+    badge: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+    select: 'border-amber-500/40 bg-amber-950/40 text-amber-200 focus:border-amber-400',
+    dot: 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]',
+  },
+  'Payment Pending': {
+    badge: 'border-orange-500/30 bg-orange-500/10 text-orange-300',
+    select: 'border-orange-500/40 bg-orange-950/40 text-orange-200 focus:border-orange-400',
+    dot: 'bg-orange-400 shadow-[0_0_6px_rgba(251,146,60,0.5)]',
+  },
+  'Won – Client': {
+    badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25',
+    select: 'border-emerald-500/40 bg-emerald-950/50 text-emerald-200 focus:border-emerald-400',
+    dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]',
+  },
+  'Won - Client': {
+    badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25',
+    select: 'border-emerald-500/40 bg-emerald-950/50 text-emerald-200 focus:border-emerald-400',
+    dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]',
+  },
+  'Lost': {
+    badge: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
+    select: 'border-rose-500/40 bg-rose-950/40 text-rose-200 focus:border-rose-400',
+    dot: 'bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.5)]',
+  },
+  'Follow Up Later': {
+    badge: 'border-slate-500/30 bg-slate-500/15 text-slate-300',
+    select: 'border-slate-500/40 bg-slate-900/60 text-slate-200 focus:border-slate-400',
+    dot: 'bg-slate-400 shadow-[0_0_6px_rgba(148,163,184,0.5)]',
+  },
+};
+
+export const getDispositionStyle = (disposition) => {
+  const norm = String(disposition || '').trim();
+  return (
+    DISPOSITION_STYLES[norm] ||
+    DISPOSITION_STYLES[norm.replace('-', '–')] ||
+    DISPOSITION_STYLES[norm.replace('–', '-')] || {
+      badge: 'border-gray-500/30 bg-gray-500/10 text-gray-300',
+      select: 'border-gray-700 bg-gray-900 text-gray-200',
+      dot: 'bg-gray-400',
+    }
+  );
+};
+
 export const LOST_REASONS = [
   'Price too high',
   'Went with competitor',
@@ -546,7 +617,7 @@ function CRM() {
     <div className="crm-page mx-auto flex h-full max-w-6xl flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">CRM Leads</h2>
+          <h2 className="text-lg font-semibold text-white [html[data-theme='day']_&]:text-slate-900">CRM Leads</h2>
           <p className="text-sm text-gray-400">Review leads, assign follow-ups, and keep notes in one place.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -577,7 +648,7 @@ function CRM() {
       {showCreateForm && (
         <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
           <div className="mb-4 border-b border-gray-800 pb-3">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-white">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">
               <span className="text-emerald-400">Ultimate Ads Solution</span>
               <span className="text-sm font-normal text-gray-500">· New Lead</span>
             </h3>
@@ -585,7 +656,7 @@ function CRM() {
           </div>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-300">
+              <label className="mb-1 block text-xs font-medium text-gray-300 [html[data-theme='day']_&]:text-slate-700">
                 Contact Name <span className="text-emerald-400">*</span>
               </label>
               <input
@@ -593,7 +664,7 @@ function CRM() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Contact Name *"
-                className="w-full rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+                className="crm-lead-name-input w-full rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none [html[data-theme='day']_&]:text-slate-900"
                 required
               />
             </div>
@@ -692,7 +763,7 @@ function CRM() {
                 className="w-full rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
               >
                 {LEAD_DISPOSITIONS.map((status) => (
-                  <option key={status} value={status}>{status}</option>
+                  <option key={status} value={status} className="bg-[#11151F] text-gray-200 py-1.5">{status}</option>
                 ))}
               </select>
             </div>
@@ -771,8 +842,8 @@ function CRM() {
             className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
           />
           <select name="status" value={filters.status} onChange={handleFilterChange} className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none">
-            <option value="">All statuses</option>
-            {LEAD_DISPOSITIONS.map((status) => <option key={status} value={status}>{status}</option>)}
+            <option value="" className="bg-[#11151F] text-gray-200">All statuses</option>
+            {LEAD_DISPOSITIONS.map((status) => <option key={status} value={status} className="bg-[#11151F] text-gray-200 py-1.5">{status}</option>)}
           </select>
           {currentUser?.role === 'admin' && (
             <select name="assignee" value={filters.assignee} onChange={handleFilterChange} className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none">
@@ -807,24 +878,24 @@ function CRM() {
               const isFollowUpDue = lead.followUpAt && new Date(lead.followUpAt) <= new Date();
               const isFollowUpSoon = lead.followUpAt && new Date(lead.followUpAt) <= new Date(Date.now() + 24 * 60 * 60 * 1000);
               const hasUsablePhone = canUsePhone(lead.phone);
+              const statusStyle = getDispositionStyle(lead.disposition);
 
               return (
                 <div key={lead._id} className="rounded-2xl border border-gray-800 bg-gray-950 p-3.5 transition hover:border-gray-700 hover:bg-gray-900/60">
                   <div className="flex flex-col gap-2.5 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="truncate text-base font-semibold text-white">{lead.name || 'Unnamed lead'}</h4>
+                        <h4 className="crm-lead-name truncate text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900 transition-colors">
+                          {lead.name || 'Unnamed lead'}
+                        </h4>
                         {lead.companyName && (
                           <span className="rounded-md border border-gray-700 bg-gray-800/80 px-2 py-0.5 text-xs text-gray-300">
                             {lead.companyName}
                           </span>
                         )}
-                        <span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-                          lead.disposition === 'Lost'
-                            ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
-                            : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
-                        }`}>
-                          {lead.disposition || 'New Lead'}
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${statusStyle.badge}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`} />
+                          <span>{lead.disposition || 'New Lead'}</span>
                           {lead.disposition === 'Lost' && lead.lostReason ? ` · ${lead.lostReason}` : ''}
                         </span>
                         <button
@@ -950,13 +1021,13 @@ function CRM() {
                         value={lead.disposition || 'New Lead'}
                         disabled={updatingLeadId === lead._id}
                         onChange={(event) => handleStatusChange(lead, event.target.value)}
-                        className={`h-8 rounded-lg border px-2.5 text-xs font-semibold outline-none disabled:cursor-wait disabled:opacity-60 ${
-                          lead.disposition === 'Lost'
-                            ? 'border-rose-600/40 bg-rose-600/10 text-rose-300'
-                            : 'border-emerald-600/30 bg-emerald-600/10 text-emerald-300'
-                        }`}
+                        className={`h-8 rounded-lg border px-2.5 text-xs font-semibold outline-none transition-colors disabled:cursor-wait disabled:opacity-60 cursor-pointer ${statusStyle.select}`}
                       >
-                        {LEAD_DISPOSITIONS.map((status) => <option key={status} value={status}>{status}</option>)}
+                        {LEAD_DISPOSITIONS.map((status) => (
+                          <option key={status} value={status} className="bg-[#11151F] text-gray-200 py-1.5">
+                            {status}
+                          </option>
+                        ))}
                       </select>
 
                       {lead.disposition === 'Lost' && (
@@ -1100,8 +1171,8 @@ function CRM() {
           <div className="w-full max-w-lg rounded-2xl border border-gray-700 bg-gray-950 shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-gray-800 px-4 py-3">
               <div className="min-w-0">
-                <h3 className="truncate text-base font-semibold text-white">Notes / Requirements</h3>
-                <p className="truncate text-sm text-gray-400">
+                <h3 className="truncate text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">Notes / Requirements</h3>
+                <p className="crm-lead-name truncate text-sm text-gray-400 [html[data-theme='day']_&]:text-slate-700 font-medium">
                   {selectedNoteLead.name || 'Unnamed lead'}
                   {selectedNoteLead.companyName ? ` (${selectedNoteLead.companyName})` : ''}
                 </p>
@@ -1163,11 +1234,11 @@ function CRM() {
           <div className="w-full max-w-md rounded-2xl border border-rose-900/60 bg-gray-950 p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3 border-b border-gray-800 pb-3">
               <div>
-                <h3 className="flex items-center gap-2 text-base font-semibold text-white">
+                <h3 className="flex items-center gap-2 text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">
                   <span className="text-rose-400">Lost Reason</span>
                 </h3>
-                <p className="mt-1 text-xs text-gray-400">
-                  Select why <strong className="text-gray-200">{lostReasonModal.name || 'this lead'}</strong> was marked as lost:
+                <p className="mt-1 text-xs text-gray-400 [html[data-theme='day']_&]:text-slate-600">
+                  Select why <strong className="crm-lead-name text-gray-200 [html[data-theme='day']_&]:text-slate-900 font-semibold">{lostReasonModal.name || 'this lead'}</strong> was marked as lost:
                 </p>
               </div>
               <button
