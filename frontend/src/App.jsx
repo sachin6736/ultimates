@@ -462,6 +462,7 @@ function App() {
   const openNewCall = () => {
     setSelectedPhoneNumber('');
     setShowDialerModal(true);
+    window.dispatchEvent(new CustomEvent('openDialer', { detail: { phoneNumber: '' } }));
   };
 
   const handleLogout = async () => {
