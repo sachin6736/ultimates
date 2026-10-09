@@ -109,6 +109,13 @@ const isEditingText = (target) => {
   return tag === 'input' || tag === 'textarea' || tag === 'select' || Boolean(target.isContentEditable);
 };
 
+const formatCallDuration = (sec = 0) => {
+  const safeSec = Math.max(0, Math.floor(sec || 0));
+  const mins = Math.floor(safeSec / 60);
+  const remainingSecs = safeSec % 60;
+  return `${mins}:${remainingSecs.toString().padStart(2, '0')}`;
+};
+
 function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser = null }) {
   const [phoneNumber, setPhoneNumber] = useState(selectedPhoneNumber);
   const [device, setDevice] = useState(null);
@@ -428,15 +435,38 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [incomingCall, isCalling, isOpen, isMinimized]);
 
-  // Duration Timer
+  // Duration Timer management
   useEffect(() => {
-    if (startTimeRef.current) {
-      timerRef.current = setInterval(() => {
-        setDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
-      }, 1000);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
+
+  const startCallTimer = (existingStartTime = null) => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
-    return () => clearInterval(timerRef.current);
-  }, [isCalling]);
+    const startTime = existingStartTime || startTimeRef.current || Date.now();
+    startTimeRef.current = startTime;
+    setDuration(Math.floor((Date.now() - startTime) / 1000));
+
+    timerRef.current = setInterval(() => {
+      setDuration(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+  };
+
+  const stopCallTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    startTimeRef.current = null;
+    setDuration(0);
+  };
 
   // Draggable window handlers
   const handleHeaderMouseDown = (e) => {
@@ -880,8 +910,7 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
     setIsMinimized(false);
     setIsCalling(true);
     setCallStatus('Ringing...');
-    setDuration(0);
-    startTimeRef.current = null;
+    stopCallTimer();
 
     try {
       const conn = await device.connect({ params: { To: phoneNumber.trim() } });
@@ -894,16 +923,39 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
         logged: false
       };
 
-      conn.on('accept', () => {
+      const handleConnected = () => {
         setCallStatus('Connected');
-        startTimeRef.current = Date.now();
+        if (!startTimeRef.current) {
+          startCallTimer();
+        }
         activeCallRef.current = {
           ...activeCallRef.current,
           accepted: true,
           callSid: conn?.parameters?.CallSid || activeCallRef.current?.callSid || ''
         };
+      };
+
+      conn.on('accept', handleConnected);
+
+      const connStatus = typeof conn.status === 'function' ? conn.status() : conn.status;
+      if (connStatus === 'open') {
+        handleConnected();
+      }
+
+      conn.on('ringing', () => {
+        setCallStatus('Ringing...');
       });
 
+      conn.on('reconnecting', () => {
+        setCallStatus('Reconnecting...');
+      });
+
+      conn.on('reconnected', () => {
+        setCallStatus('Connected');
+      });
+
+      conn.on('cancel', () => handleCallEnd(conn, { status: 'canceled' }));
+      conn.on('reject', () => handleCallEnd(conn, { status: 'rejected' }));
       conn.on('disconnect', () => handleCallEnd(conn));
       conn.on('error', () => handleCallEnd(conn, { status: 'failed' }));
     } catch (err) {
@@ -932,7 +984,6 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
   const resetCall = () => {
     setIsCalling(false);
     setCallStatus(isDeviceReady ? 'Ready' : 'Device offline');
-    setDuration(0);
     setConnection(null);
     setIsMuted(false);
     setIsOnHold(false);
@@ -940,8 +991,7 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
     setShowKeypad(false);
     setIsMinimized(false);
     setIsIncomingMinimized(false);
-    startTimeRef.current = null;
-    if (timerRef.current) clearInterval(timerRef.current);
+    stopCallTimer();
   };
 
   const handleMinimizeDialer = () => {
@@ -1030,7 +1080,7 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
       setPhoneNumber(activeCallRef.current?.phoneNumber || '');
       setIsCalling(true);
       setCallStatus('Connected');
-      startTimeRef.current = Date.now();
+      startCallTimer();
     }
   };
 
@@ -1267,11 +1317,9 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
                 <span className="text-xs font-semibold text-white truncate max-w-[130px]">
                   {phoneNumber || 'Active Call'}
                 </span>
-                {startTimeRef.current && (
-                  <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shrink-0">
-                    {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}
-                  </span>
-                )}
+                <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                  {formatCallDuration(duration)}
+                </span>
               </div>
               <span className="text-[10px] text-gray-400 block group-hover:text-gray-300 truncate">
                 {callStatus} • Tap to expand
@@ -1403,9 +1451,9 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
                 <h3 className="text-sm font-semibold truncate text-white">
                   {isCalling ? 'Active Call' : 'Phone Dialer'}
                 </h3>
-                {isCalling && startTimeRef.current && (
+                {isCalling && (
                   <span className="text-xs font-mono font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
-                    {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}
+                    {formatCallDuration(duration)}
                   </span>
                 )}
               </div>
@@ -1473,11 +1521,9 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
                     <span className="text-xs font-medium text-emerald-400">{callStatus}</span>
                   </div>
 
-                  {startTimeRef.current && (
-                    <div className="text-3xl font-mono font-light text-white mb-4 tracking-wider">
-                      {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}
-                    </div>
-                  )}
+                  <div className="text-3xl font-mono font-light text-white mb-4 tracking-wider">
+                    {formatCallDuration(duration)}
+                  </div>
 
                   {/* DTMF Keypad View or Action Controls */}
                   {showKeypad ? (
