@@ -31,7 +31,7 @@ const getUserId = (user) => String(user?.id || user?._id || user || '');
 const getFollowUpOwnerId = (followUp) => getUserId(followUp.user);
 const getFollowUpOwnerLabel = (followUp) => followUp.user?.name || followUp.user?.email || 'Unassigned';
 
-const actionIconClass = 'inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-600 bg-gray-800 text-gray-300 transition hover:border-gray-500 hover:bg-gray-700 hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500';
+const actionIconClass = 'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-600 bg-gray-800 text-gray-300 transition hover:border-gray-500 hover:bg-gray-700 hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500';
 const menuItemClass = 'flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-gray-200 transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-500';
 
 const readJsonResponse = async (res) => {
@@ -448,12 +448,12 @@ function FollowUps({ onDueCountChange, currentUser }) {
 
                   <div
                     ref={isMenuOpen ? menuRef : null}
-                    className={`absolute bottom-2 right-3 z-20 ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}
+                    className={`absolute bottom-2 right-2.5 z-20 ${isMenuOpen ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100'}`}
                   >
                     <button
                       type="button"
                       onClick={() => setOpenMenuId((current) => (current === followUp._id ? null : followUp._id))}
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-400"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-700/60 bg-gray-800/80 text-gray-300 transition hover:bg-gray-700 hover:text-white"
                       title="More actions"
                       aria-label="More actions"
                       aria-expanded={isMenuOpen}

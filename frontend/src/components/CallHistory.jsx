@@ -658,56 +658,14 @@ function CallHistory() {
           return (
             <div
               key={logId}
-              className="group relative px-3 py-3.5 transition-colors hover:bg-[#1F2533] sm:px-4"
+              className="group relative px-3 py-3 transition-colors hover:bg-[#1F2533] sm:px-4"
             >
-              <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-                <button
-                  type="button"
-                  onClick={() => handleMakeCall(log.phoneNumber)}
-                  disabled={!canCallNumber(log.phoneNumber)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-[#0F141F]/95 text-emerald-300 shadow-sm transition-colors hover:bg-emerald-500 hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
-                  title={`Call ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
-                  aria-label={`Call ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
-                >
-                  <PhoneIcon />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMessage(log.phoneNumber)}
-                  disabled={!canCallNumber(log.phoneNumber)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-[#0F141F]/95 text-emerald-300 shadow-sm transition-colors hover:bg-[#059669] hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
-                  title={`Message ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
-                  aria-label={`Message ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
-                >
-                  <MessageIcon />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleOpenFollowUp(log)}
-                  disabled={!canCallNumber(log.phoneNumber)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-violet-500/20 bg-[#0F141F]/95 text-violet-300 shadow-sm transition-colors hover:bg-violet-500 hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
-                  title={`Add follow-up for ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
-                  aria-label={`Add follow-up for ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
-                >
-                  <FollowUpIcon />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCopyNumber(log.phoneNumber)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-600 bg-[#0F141F]/95 text-gray-300 shadow-sm transition-colors hover:bg-gray-700 hover:text-white"
-                  title="Copy number"
-                  aria-label={`Copy ${formatPhoneNumber(log.phoneNumber)}`}
-                >
-                  <CopyIcon />
-                </button>
-              </div>
-
-              <div className="flex items-start gap-3 pr-0 sm:pr-32">
+              <div className="flex items-start gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ring-1 shrink-0 ${meta.iconClass}`}>
                   <DirectionIcon type={meta.visualType} />
                 </div>
 
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 sm:pr-32">
                   <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                     <button
                       type="button"
@@ -748,12 +706,49 @@ function CallHistory() {
                         <span className="text-gray-500">{getAlsoNotifiedLabel(log)}</span>
                       </>
                     )}
-                    {getMissedByLabel(log) && (
-                      <>
-                        <span className="text-gray-600">|</span>
-                        <span className="text-gray-500">{getMissedByLabel(log)}</span>
-                      </>
-                    )}
+                  </div>
+
+                  {/* Action buttons: Visible on mobile, hover-only on desktop */}
+                  <div className="mt-2.5 flex items-center gap-1.5 sm:mt-0 sm:absolute sm:right-3 sm:top-3 sm:z-10 sm:opacity-0 sm:transition-opacity sm:pointer-events-none sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => handleMakeCall(log.phoneNumber)}
+                      disabled={!canCallNumber(log.phoneNumber)}
+                      className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-[#0F141F] text-emerald-300 shadow-sm transition-colors hover:bg-emerald-500 hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
+                      title={`Call ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
+                      aria-label={`Call ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
+                    >
+                      <PhoneIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMessage(log.phoneNumber)}
+                      disabled={!canCallNumber(log.phoneNumber)}
+                      className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-[#0F141F] text-emerald-300 shadow-sm transition-colors hover:bg-[#059669] hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
+                      title={`Message ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
+                      aria-label={`Message ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
+                    >
+                      <MessageIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenFollowUp(log)}
+                      disabled={!canCallNumber(log.phoneNumber)}
+                      className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-lg border border-violet-500/20 bg-[#0F141F] text-violet-300 shadow-sm transition-colors hover:bg-violet-500 hover:text-white disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
+                      title={`Add follow-up for ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
+                      aria-label={`Add follow-up for ${log.contactName ? `${log.contactName} (${formatPhoneNumber(log.phoneNumber)})` : formatPhoneNumber(log.phoneNumber)}`}
+                    >
+                      <FollowUpIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyNumber(log.phoneNumber)}
+                      className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-lg border border-gray-600 bg-[#0F141F] text-gray-300 shadow-sm transition-colors hover:bg-gray-700 hover:text-white"
+                      title="Copy number"
+                      aria-label={`Copy ${formatPhoneNumber(log.phoneNumber)}`}
+                    >
+                      <CopyIcon />
+                    </button>
                   </div>
                 </div>
               </div>

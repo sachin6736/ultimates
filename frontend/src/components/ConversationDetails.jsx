@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Phone, Search, Sparkles, User, X } from 'lucide-react';
+import { ArrowLeft, Bot, Phone, Search, Sparkles, User, X } from 'lucide-react';
 import { AppSkeletonTheme, Skeleton } from './ui/AppSkeleton.jsx';
 import InlineLoader from './ui/InlineLoader.jsx';
 import { buildPagedUrl, PAGE_SIZE, parsePagedResponse } from '../utils/pagination.js';
@@ -437,27 +437,40 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
 
   return (
     <div className="conversation-details-panel flex h-full min-h-0 flex-col bg-[#0F1322]">
-      <div className="conversation-header border-b border-gray-800 bg-[#161B28] px-5 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <button
-              type="button"
-              onClick={handleCopyNumber}
-              className="conversation-title truncate text-left text-xl font-semibold text-white hover:text-emerald-300"
-              title="Copy number"
-            >
-              {formatPhoneNumber(phoneNumber)}
-            </button>
-            <p className="conversation-subtitle mt-1 text-xs text-gray-400">
-              {timeline.length} loaded interaction{timeline.length === 1 ? '' : 's'}
-            </p>
+      <div className="conversation-header border-b border-gray-800 bg-[#161B28] px-3.5 py-3 sm:px-5 sm:py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-700 bg-gray-800 text-gray-300 transition hover:bg-gray-700 hover:text-white lg:hidden shrink-0"
+                aria-label="Back"
+                title="Back to list"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            )}
+            <div className="min-w-0">
+              <button
+                type="button"
+                onClick={handleCopyNumber}
+                className="conversation-title truncate text-left text-base sm:text-xl font-semibold text-white hover:text-emerald-300 block"
+                title="Copy number"
+              >
+                {formatPhoneNumber(phoneNumber)}
+              </button>
+              <p className="conversation-subtitle mt-0.5 text-[11px] sm:text-xs text-gray-400">
+                {timeline.length} loaded interaction{timeline.length === 1 ? '' : 's'}
+              </p>
+            </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={handleCall}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white transition hover:bg-emerald-500"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-emerald-600 text-white transition hover:bg-emerald-500"
               title="Call"
               aria-label="Call"
             >
@@ -466,7 +479,7 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="conversation-close-btn rounded-xl border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 transition hover:bg-gray-800 hover:text-white"
+              className="conversation-close-btn rounded-xl border border-gray-700 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-medium text-gray-300 transition hover:bg-gray-800 hover:text-white"
             >
               Close
             </button>
@@ -616,8 +629,8 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
             className="conversation-compose-textarea w-full resize-none rounded-xl border border-gray-700 bg-[#0F1322] px-3 py-2 text-sm text-white focus:border-emerald-500"
           />
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="conversation-attach-btn cursor-pointer rounded-lg border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 transition hover:bg-gray-800 hover:text-white">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <label className="conversation-attach-btn inline-flex items-center justify-center cursor-pointer rounded-lg border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 transition hover:bg-gray-800 hover:text-white truncate">
               {imageFile ? imageFile.name : suggestedMediaUrls.length > 0 ? `${suggestedMediaUrls.length} AI photo(s) attached` : 'Attach image'}
               <input
                 type="file"
@@ -626,7 +639,7 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
                 onChange={(event) => setImageFile(event.target.files?.[0] || null)}
               />
             </label>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               {(imageFile || suggestedMediaUrls.length > 0) && (
                 <button
                   type="button"
@@ -634,7 +647,7 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
                     setImageFile(null);
                     setSuggestedMediaUrls([]);
                   }}
-                  className="conversation-remove-img-btn rounded-xl border border-gray-700 px-3 py-2 text-sm font-semibold text-gray-300 transition hover:bg-gray-800 hover:text-white"
+                  className="conversation-remove-img-btn rounded-xl border border-gray-700 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-gray-300 transition hover:bg-gray-800 hover:text-white"
                 >
                   Remove image
                 </button>
@@ -643,7 +656,7 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
                 type="button"
                 onClick={() => { setNotice(''); setPartSearch(''); setShowQuotePicker(true); }}
                 disabled={sending || drafting}
-                className="conversation-quote-btn rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/20 disabled:opacity-60"
+                className="conversation-quote-btn rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/20 disabled:opacity-60"
               >
                 Send Quote
               </button>
@@ -651,14 +664,14 @@ function ConversationDetails({ phoneNumber, leadId = '', onClose }) {
                 type="button"
                 onClick={draftAiMessage}
                 disabled={drafting || sending || (!phoneNumber && !leadId)}
-                className="conversation-ai-draft-btn inline-flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-semibold text-cyan-200 transition hover:border-cyan-400 hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
+                className="conversation-ai-draft-btn inline-flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold text-cyan-200 transition hover:border-cyan-400 hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
               >
-                {drafting ? <InlineLoader label="Drafting..." /> : <><Sparkles className="h-4 w-4" aria-hidden="true" /> AI Draft</>}
+                {drafting ? <InlineLoader label="Drafting..." /> : <><Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" /> AI Draft</>}
               </button>
               <button
                 type="submit"
                 disabled={sending}
-                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-60"
+                className="rounded-xl bg-emerald-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-60"
               >
                 {sending ? <InlineLoader label="Sending..." /> : 'Send SMS'}
               </button>

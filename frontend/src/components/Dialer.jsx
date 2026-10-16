@@ -1105,7 +1105,7 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
           Incoming Call Floating Card (Non-blocking & Minimizable)
           ========================================================= */}
       {incomingCall && !isIncomingMinimized && (
-        <div className="fixed bottom-5 right-5 z-[60] w-full max-w-sm rounded-2xl border border-emerald-500/50 bg-[#1C2333]/98 backdrop-blur-xl p-5 shadow-2xl text-white dialer-floating-card">
+        <div className="fixed bottom-20 right-3 left-3 sm:left-auto sm:right-5 sm:bottom-5 z-[60] w-auto sm:max-w-sm rounded-2xl border border-emerald-500/50 bg-[#1C2333]/98 backdrop-blur-xl p-4 sm:p-5 shadow-2xl text-white dialer-floating-card">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="relative flex h-3 w-3">
@@ -1300,7 +1300,7 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
           ========================================================= */}
       {isCalling && isMinimized && (
         <div
-          className="dialer-minimized-card fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-[#161B28]/95 backdrop-blur-md px-3.5 py-2.5 shadow-2xl text-white select-none pointer-events-auto"
+          className="dialer-minimized-card fixed bottom-20 right-3 sm:right-5 sm:bottom-5 z-50 flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-emerald-500/40 bg-[#161B28]/95 backdrop-blur-md px-3 sm:px-3.5 py-2 sm:py-2.5 shadow-2xl text-white select-none pointer-events-auto max-w-[calc(100vw-1.5rem)]"
         >
           <button
             type="button"
@@ -1367,7 +1367,7 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
           ========================================================= */}
       {!isCalling && isOpen && isMinimized && (
         <div
-          className="dialer-minimized-card fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-2xl border border-gray-700/80 bg-[#161B28]/95 backdrop-blur-md px-3 py-2 shadow-2xl text-white select-none pointer-events-auto"
+          className="dialer-minimized-card fixed bottom-20 right-3 sm:right-5 sm:bottom-5 z-50 flex items-center gap-2 rounded-2xl border border-gray-700/80 bg-[#161B28]/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 sm:py-2 shadow-2xl text-white select-none pointer-events-auto max-w-[calc(100vw-1.5rem)]"
         >
           <button
             type="button"
@@ -1417,12 +1417,14 @@ function Dialer({ selectedPhoneNumber = '', isOpen = true, onClose, currentUser 
         <div
           ref={dialerRef}
           style={
-            position
+            position && typeof window !== 'undefined' && window.innerWidth >= 640
               ? { left: `${position.x}px`, top: `${position.y}px`, right: 'auto', bottom: 'auto' }
               : undefined
           }
-          className={`dialer-floating-card fixed z-50 pointer-events-auto w-[360px] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-gray-700/80 bg-[#161B28]/95 backdrop-blur-xl shadow-2xl shadow-black/60 text-white transition-shadow ${
-            !position ? 'bottom-5 right-5 md:bottom-6 md:right-6' : ''
+          className={`dialer-floating-card fixed z-50 pointer-events-auto rounded-2xl border border-gray-700/80 bg-[#161B28]/98 backdrop-blur-xl shadow-2xl shadow-black/80 text-white transition-shadow max-h-[85vh] overflow-y-auto ${
+            !position || (typeof window !== 'undefined' && window.innerWidth < 640)
+              ? 'bottom-20 right-3 left-3 sm:left-auto sm:right-6 sm:bottom-6 sm:w-[360px]'
+              : 'w-[360px] max-w-[calc(100vw-1.5rem)]'
           } ${isDragging ? 'select-none ring-1 ring-emerald-500/40 shadow-emerald-950/40' : ''}`}
         >
           {/* Header Bar: Draggable with Drag Handle, Status, Title, Minimize & Close */}

@@ -425,7 +425,7 @@ function AdminDashboard({ showStats = true, showCreateUser = true, showUsers = t
                 <h3 className="text-sm font-semibold text-white">Monthly Activity</h3>
                 <p className="text-xs text-gray-400">Choose a month and date, then refresh the counts.</p>
               </div>
-              <div className="grid gap-2 sm:grid-cols-[auto_auto_auto] sm:items-end">
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[auto_auto_auto] sm:items-end">
                 <div>
                   <label className="mb-1.5 block text-xs text-gray-400">Filter by month</label>
                   <input
@@ -447,13 +447,13 @@ function AdminDashboard({ showStats = true, showCreateUser = true, showUsers = t
                 <button
                   type="button"
                   onClick={refreshActivityStats}
-                  className="rounded-xl bg-[#059669] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#047857]"
+                  className="w-full rounded-xl bg-[#059669] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#047857] sm:w-auto"
                 >
                   Refresh
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Selected Month Calls" value={activityStats.month.calls} tone="total" />
               <StatCard label="Selected Month Messages" value={activityStats.month.messages} tone="messages" />
               <StatCard label="Selected Date Calls" value={activityStats.selectedDate.calls} tone="outbound" />
@@ -661,7 +661,7 @@ function AdminDashboard({ showStats = true, showCreateUser = true, showUsers = t
                 const assignedNumbers = getUserAssignedNumbers(userId);
 
                 return (
-                  <div key={userId} className="flex items-start justify-between gap-3 px-4 py-3">
+                  <div key={userId} className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-white">{user.name}</p>
                       <p className="truncate text-xs text-gray-400">{user.email}</p>
@@ -703,8 +703,8 @@ function AdminDashboard({ showStats = true, showCreateUser = true, showUsers = t
                         <p className="mt-1 text-xs text-gray-500">No numbers assigned</p>
                       )}
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1.5">
-                      <div className="flex flex-wrap justify-end gap-1.5">
+                    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-gray-800/60 pt-2.5 sm:flex-col sm:items-end sm:border-t-0 sm:pt-0">
+                      <div className="flex flex-wrap gap-1.5 sm:justify-end">
                         <button
                           type="button"
                           onClick={() => toggleAiReplyStatus(userId, user.isAiAutoReplyActive !== false)}

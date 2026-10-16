@@ -1,5 +1,24 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { CalendarCheck, LayoutDashboard, MessageSquare, Moon, PhoneCall, Plus, Settings as SettingsIcon, Sun, TableProperties, Users, UsersRound, Wrench, Briefcase } from 'lucide-react';
+import {
+  CalendarCheck,
+  LayoutDashboard,
+  MessageSquare,
+  Moon,
+  PhoneCall,
+  Plus,
+  Settings as SettingsIcon,
+  Sun,
+  TableProperties,
+  Users,
+  UsersRound,
+  Wrench,
+  Briefcase,
+  Menu,
+  X,
+  ArrowLeft,
+  ChevronRight,
+  LogOut
+} from 'lucide-react';
 import { io } from 'socket.io-client';
 import Dialer from './components/Dialer.jsx';
 import CallHistory from './components/CallHistory.jsx';
@@ -99,6 +118,18 @@ const stopFollowUpReminderAlarm = () => {
   }
   followUpAlarm.audioContext = null;
 };
+const TAB_LABELS = {
+  admin: 'Admin',
+  history: 'Calls',
+  contacts: 'Contacts',
+  messages: 'Messages',
+  team: 'Team Chat',
+  followups: 'Follow Ups',
+  services: 'Services',
+  crm: 'CRM',
+  settings: 'Settings'
+};
+
 function NavIcon({ type }) {
   const icons = {
     history: PhoneCall,
@@ -113,7 +144,10 @@ function NavIcon({ type }) {
     settings: SettingsIcon,
     plus: Plus,
     sun: Sun,
-    moon: Moon
+    moon: Moon,
+    menu: Menu,
+    close: X,
+    logout: LogOut
   };
 
   const Icon = icons[type] || PhoneCall;
@@ -132,7 +166,8 @@ function App() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadTeamMessages, setUnreadTeamMessages] = useState(0);
   const [dueFollowUps, setDueFollowUps] = useState(0);
-  const [showDialerModal, setShowDialerModal] = useState(false);   // â† New state
+  const [showDialerModal, setShowDialerModal] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const activeTabRef = useRef(activeTab);
   const currentUserRef = useRef(currentUser);
@@ -141,6 +176,7 @@ function App() {
 
   const openTab = useCallback((tabId) => {
     setActiveTab(tabId);
+    setMobileDrawerOpen(false);
     if (tabId !== 'team') {
       setSelectedTeamUser(null);
     }
@@ -521,49 +557,210 @@ function App() {
     );
   }
 
+  const navItems = [
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin' }] : []),
+    { id: 'history', label: 'Calls' },
+    { id: 'contacts', label: 'Contacts' },
+    { id: 'messages', label: 'Messages', badge: unreadMessages },
+    { id: 'team', label: 'Team Chat', badge: unreadTeamMessages },
+    { id: 'followups', label: 'Follow Ups', badge: dueFollowUps, badgeColor: 'bg-amber-500' },
+    { id: 'services', label: 'Services' },
+    { id: 'settings', label: 'Settings' },
+  ];
+
+  const isMobileConversationOpen = Boolean(conversationNumber);
+  const isMobileTeamChatOpen = activeTab === 'team' && Boolean(selectedTeamUser);
+  const isMobileDetailOpen = isMobileConversationOpen || isMobileTeamChatOpen;
+
   return (
     <div className="app-shell flex h-screen flex-col bg-[#0A0C14] text-white overflow-hidden md:flex-row">
-      {/* Sidebar */}
-      <div className="shrink-0 bg-[#11151F] border-b border-gray-800 flex flex-col md:w-60 md:border-b-0 md:border-r">
-        <div className="px-4 py-3 flex items-center gap-3 border-b border-gray-800 md:px-5 md:py-4">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg">
-            <NavIcon type="history" />
+      {/* Mobile Top App Bar */}
+      <header className="shrink-0 bg-[#11151F] border-b border-gray-800 flex items-center justify-between px-3.5 py-2.5 pt-safe md:hidden z-20">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+            <NavIcon type={activeTab} />
           </div>
-          <h1 className="text-xl font-bold tracking-tight md:text-2xl">Ultimate</h1>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-base font-bold tracking-tight text-white truncate">Ultimate</span>
+              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 uppercase tracking-wider shrink-0">
+                {TAB_LABELS[activeTab] || 'App'}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <nav className="flex gap-2 overflow-x-auto p-3 no-scrollbar md:flex-1 md:flex-col md:gap-1 md:overflow-y-auto thin-scrollbar md:p-3">
-          {[
-            ...(isAdmin ? [{ id: 'admin', label: 'Admin' }] : []),
-            { id: 'history', label: 'Calls' },
-            { id: 'contacts', label: 'Contacts' },
-            { id: 'messages', label: 'Messages' },
-            { id: 'team', label: 'Team Chat' },
-            { id: 'followups', label: 'Follow Ups' },
-            { id: 'services', label: 'Services' },
-            { id: 'settings', label: 'Settings' },
-          ].map((item) => (
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Quick Call Button */}
+          <button
+            type="button"
+            onClick={openNewCall}
+            className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition active:scale-95"
+            title="New Call"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Call</span>
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition active:scale-95"
+            title={theme === 'night' ? 'Switch to day mode' : 'Switch to night mode'}
+          >
+            <NavIcon type={theme === 'night' ? 'sun' : 'moon'} />
+          </button>
+
+          {/* Drawer Menu Button */}
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen(true)}
+            className="relative p-2 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition active:scale-95"
+            title="Open navigation menu"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-5 w-5" />
+            {(unreadMessages > 0 || unreadTeamMessages > 0 || dueFollowUps > 0) && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#11151F]" />
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Slide-Over Drawer Navigation */}
+      {mobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileDrawerOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Drawer content */}
+          <div className="relative w-[300px] max-w-[85vw] bg-[#11151F] border-r border-gray-800 h-full flex flex-col p-4 shadow-2xl z-10 pt-safe pb-safe overflow-y-auto thin-scrollbar">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-gray-800">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
+                  <NavIcon type="history" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-base font-bold text-white truncate">Ultimate</h2>
+                  <p className="text-xs text-gray-400 truncate">{currentUser?.name || currentUser?.email || 'User'}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileDrawerOpen(false)}
+                className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Drawer Nav Items */}
+            <nav className="flex-1 py-3 space-y-1 overflow-y-auto thin-scrollbar">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => openTab(item.id)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-left ${
+                    activeTab === item.id
+                      ? 'bg-gray-800 text-white font-semibold'
+                      : 'hover:bg-gray-800/60 text-gray-300'
+                  }`}
+                >
+                  <span className="w-5 text-current shrink-0"><NavIcon type={item.id} /></span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge > 0 && (
+                    <span className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-white ${item.badgeColor || 'bg-red-500'}`}>
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+
+              {/* CRM button in drawer */}
+              <button
+                type="button"
+                onClick={() => openTab('crm')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm transition text-left ${
+                  activeTab === 'crm'
+                    ? 'bg-cyan-500 ring-2 ring-cyan-200/50'
+                    : 'bg-cyan-600 hover:bg-cyan-500'
+                }`}
+              >
+                <span className="w-5 shrink-0"><NavIcon type="crm" /></span>
+                <span>CRM Leads</span>
+              </button>
+
+              {/* New Call button in drawer */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileDrawerOpen(false);
+                  openNewCall();
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition text-left mt-2"
+              >
+                <span className="w-5 shrink-0"><NavIcon type="plus" /></span>
+                <span>+ New Call</span>
+              </button>
+            </nav>
+
+            {/* Drawer Footer */}
+            <div className="pt-3 border-t border-gray-800 space-y-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex w-full items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-800 transition"
+              >
+                <span className="w-5 shrink-0"><NavIcon type={theme === 'night' ? 'sun' : 'moon'} /></span>
+                <span>{theme === 'night' ? 'Day Mode' : 'Night Mode'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileDrawerOpen(false);
+                  confirmLogout();
+                }}
+                className="flex w-full items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:bg-red-950/30 transition"
+              >
+                <span className="w-5 shrink-0"><LogOut className="h-5 w-5" /></span>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar (hidden on mobile, visible on md+) */}
+      <div className="hidden md:flex md:w-60 shrink-0 bg-[#11151F] border-r border-gray-800 flex-col">
+        <div className="px-5 py-4 flex items-center gap-3 border-b border-gray-800">
+          <div className="w-9 h-9 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
+            <NavIcon type="history" />
+          </div>
+          <h1 className="text-xl font-bold tracking-tight">Ultimate</h1>
+        </div>
+
+        <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto thin-scrollbar">
+          {navItems.map((item) => (
             <div
               key={item.id}
               onClick={() => openTab(item.id)}
-              className={`flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-medium transition-all md:px-4 md:py-3
-                ${activeTab === item.id ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 text-gray-300'}`}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl cursor-pointer text-sm font-medium transition-all ${
+                activeTab === item.id ? 'bg-gray-800 text-white font-semibold' : 'hover:bg-gray-800 text-gray-300'
+              }`}
             >
-              <span className="w-5 text-current"><NavIcon type={item.id} /></span>
+              <span className="w-5 text-current shrink-0"><NavIcon type={item.id} /></span>
               <span>{item.label}</span>
-              {item.id === 'messages' && unreadMessages > 0 && (
-                <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                  {unreadMessages > 99 ? '99+' : unreadMessages}
-                </span>
-              )}
-              {item.id === 'team' && unreadTeamMessages > 0 && (
-                <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                  {unreadTeamMessages > 99 ? '99+' : unreadTeamMessages}
-                </span>
-              )}
-              {item.id === 'followups' && dueFollowUps > 0 && (
-                <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                  {dueFollowUps > 99 ? '99+' : dueFollowUps}
+              {item.badge > 0 && (
+                <span className={`ml-auto inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-white ${item.badgeColor || 'bg-red-500'}`}>
+                  {item.badge > 99 ? '99+' : item.badge}
                 </span>
               )}
             </div>
@@ -571,29 +768,30 @@ function App() {
 
           <div
             onClick={() => openTab('crm')}
-            className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-white shadow-lg transition-all md:mt-auto md:px-4 md:py-3
-              ${activeTab === 'crm'
+            className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all mt-auto ${
+              activeTab === 'crm'
                 ? 'cursor-default bg-cyan-500 ring-2 ring-cyan-200/50'
-                : 'cursor-pointer bg-cyan-600 hover:bg-cyan-500'}`}
+                : 'cursor-pointer bg-cyan-600 hover:bg-cyan-500'
+            }`}
           >
-            <span className="w-5"><NavIcon type="crm" /></span>
+            <span className="w-5 shrink-0"><NavIcon type="crm" /></span>
             CRM
           </div>
 
           {/* + New Call Button */}
           <div
             onClick={openNewCall}
-            className="flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg md:mt-4 md:px-4 md:py-3"
+            className="flex items-center gap-2 px-4 py-3 rounded-xl cursor-pointer text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg mt-3"
           >
-            <span className="w-5"><NavIcon type="plus" /></span>
+            <span className="w-5 shrink-0"><NavIcon type="plus" /></span>
             New Call
           </div>
 
           {/* Slot for connection status below New Call button */}
-          <div id="dialer-status-sidebar-slot" className="empty:hidden shrink-0 w-auto min-w-[200px] md:w-full md:mt-2.5" />
+          <div id="dialer-status-sidebar-slot" className="empty:hidden w-full mt-2.5" />
         </nav>
 
-        <div className="hidden p-3 border-t border-gray-800 md:block">
+        <div className="p-3 border-t border-gray-800">
           <button
             type="button"
             onClick={toggleTheme}
@@ -603,7 +801,7 @@ function App() {
             <span className="w-5"><NavIcon type={theme === 'night' ? 'sun' : 'moon'} /></span>
             {theme === 'night' ? 'Day' : 'Night'}
           </button>
-          <button 
+          <button
             onClick={confirmLogout}
             className="w-full py-2.5 text-sm text-red-400 hover:bg-red-950/30 rounded-xl transition font-medium"
           >
@@ -612,68 +810,81 @@ function App() {
         </div>
       </div>
 
-      {/* Middle Panel */}
-      <div className={`min-h-0 flex-1 border-r border-gray-800 bg-[#161B28] flex flex-col md:w-[390px] md:flex-none xl:w-[410px] ${activeTab === 'crm' || activeTab === 'services' ? 'lg:hidden' : ''}`}>
-        <div className="h-12 border-b border-gray-800 flex items-center justify-between px-4 bg-[#1C2333] md:h-14 md:px-5">
-          <h2 className="text-base font-semibold md:text-lg">
-            {activeTab === 'admin' && 'Admin Dashboard'}
-            {activeTab === 'history' && 'Call History'}
-            {activeTab === 'contacts' && 'Contacts'}
-            {activeTab === 'messages' && 'Messages'}
-            {activeTab === 'crm' && 'CRM'}
-            {activeTab === 'team' && 'Team Chat'}
-            {activeTab === 'followups' && 'Follow Ups'}
-            {activeTab === 'services' && 'Services'}
-            {activeTab === 'settings' && 'Settings'}
-          </h2>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="rounded-lg px-2 py-1.5 text-gray-300 hover:bg-gray-800 md:hidden"
-            title={theme === 'night' ? 'Switch to day mode' : 'Switch to night mode'}
-          >
-            <span className="block w-5"><NavIcon type={theme === 'night' ? 'sun' : 'moon'} /></span>
-          </button>
-          <button
-            onClick={confirmLogout}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-950/30 md:hidden"
-          >
-            Logout
-          </button>
+      {/* Main Content Area */}
+      {/* Mobile Master-Detail Condition: If detail view is open on mobile (< lg), render detail view */}
+      {isMobileConversationOpen ? (
+        <div className="flex-1 min-h-0 flex flex-col bg-[#0F1322] lg:hidden">
+          <ConversationDetails
+            phoneNumber={conversationNumber}
+            leadId={conversationLeadId}
+            onClose={() => {
+              setConversationNumber('');
+              setConversationLeadId('');
+            }}
+          />
         </div>
-
-        <div className="flex-1 overflow-auto thin-scrollbar p-2 md:p-3">
-          {activeTab === 'admin' && isAdmin && (
-            <AdminDashboard showStats={false} showCreateUser={false} showUsers />
-          )}
-          {activeTab === 'history' && <CallHistory />}
-          {activeTab === 'contacts' && <Contacts />}
-          {activeTab === 'crm' && <CRM />}
-          {activeTab === 'messages' && (
-            <Messages
-              selectedPhoneNumber={selectedMessageNumber}
-              selectedLeadId={selectedMessageLeadId}
-              onRecipientUsed={clearSelectedMessageNumber}
-              currentUser={currentUser}
-            />
-          )}
-          {activeTab === 'team' && (
-            <InternalMessages
-              currentUser={currentUser}
-              selectedUserId={getUserId(selectedTeamUser)}
-              onSelectUser={setSelectedTeamUser}
-              onReadMessages={refreshUnreadTeamMessages}
-            />
-          )}
-          {activeTab === 'followups' && (
-            <FollowUps onDueCountChange={setDueFollowUps} currentUser={currentUser} />
-          )}
-          {activeTab === 'services' && <Services currentUser={currentUser} />}
-          {activeTab === 'settings' && <Settings />}
+      ) : isMobileTeamChatOpen ? (
+        <div className="flex-1 min-h-0 flex flex-col bg-[#0F1322] lg:hidden">
+          <InternalMessageDetails
+            currentUser={currentUser}
+            selectedUser={selectedTeamUser}
+            onReadMessages={refreshUnreadTeamMessages}
+            onBack={() => setSelectedTeamUser(null)}
+          />
         </div>
-      </div>
+      ) : (
+        /* Normal Middle Panel (or Full-screen on mobile) */
+        <div className={`min-h-0 flex-1 border-r border-gray-800 bg-[#161B28] flex flex-col md:w-[390px] md:flex-none xl:w-[410px] pb-16 md:pb-0 ${
+          activeTab === 'crm' || activeTab === 'services' ? 'lg:hidden' : ''
+        }`}>
+          <div className="hidden md:flex h-12 md:h-14 border-b border-gray-800 items-center justify-between px-4 md:px-5 bg-[#1C2333]">
+            <h2 className="text-base font-semibold md:text-lg">
+              {TAB_LABELS[activeTab] || 'Dashboard'}
+            </h2>
+          </div>
 
-      {/* Right Persistent Area (Optional - you can keep small info here) */}
+          <div className="flex-1 overflow-auto thin-scrollbar p-2.5 sm:p-3 md:p-3">
+            {activeTab === 'admin' && isAdmin && (
+              <>
+                {/* On mobile (< lg), render all sections of AdminDashboard */}
+                <div className="lg:hidden">
+                  <AdminDashboard showStats showCreateUser showUsers />
+                </div>
+                {/* On desktop (lg+), render users only in middle panel */}
+                <div className="hidden lg:block">
+                  <AdminDashboard showStats={false} showCreateUser={false} showUsers />
+                </div>
+              </>
+            )}
+            {activeTab === 'history' && <CallHistory />}
+            {activeTab === 'contacts' && <Contacts />}
+            {activeTab === 'crm' && <CRM />}
+            {activeTab === 'messages' && (
+              <Messages
+                selectedPhoneNumber={selectedMessageNumber}
+                selectedLeadId={selectedMessageLeadId}
+                onRecipientUsed={clearSelectedMessageNumber}
+                currentUser={currentUser}
+              />
+            )}
+            {activeTab === 'team' && (
+              <InternalMessages
+                currentUser={currentUser}
+                selectedUserId={getUserId(selectedTeamUser)}
+                onSelectUser={setSelectedTeamUser}
+                onReadMessages={refreshUnreadTeamMessages}
+              />
+            )}
+            {activeTab === 'followups' && (
+              <FollowUps onDueCountChange={setDueFollowUps} currentUser={currentUser} />
+            )}
+            {activeTab === 'services' && <Services currentUser={currentUser} />}
+            {activeTab === 'settings' && <Settings />}
+          </div>
+        </div>
+      )}
+
+      {/* Right Persistent Area (Desktop lg+) */}
       <div className="hidden min-w-0 flex-1 flex-col border-l border-gray-800 bg-[#0F1322] lg:flex">
         {activeTab === 'admin' && isAdmin ? (
           <div className="h-full overflow-auto p-4 thin-scrollbar">
@@ -704,6 +915,89 @@ function App() {
           />
         )}
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Hidden when conversation or team chat detail is open) */}
+      {!isMobileDetailOpen && (
+        <nav
+          className="fixed bottom-0 inset-x-0 z-30 h-16 bg-[#11151F]/95 backdrop-blur-xl border-t border-gray-800 flex items-center justify-around px-1 pb-safe md:hidden select-none"
+          aria-label="Mobile navigation"
+        >
+          <button
+            type="button"
+            onClick={() => openTab('history')}
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-xs transition active:scale-95 ${
+              activeTab === 'history' ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            <PhoneCall className="h-5 w-5 mb-0.5" />
+            <span>Calls</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openTab('messages')}
+            className={`relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs transition active:scale-95 ${
+              activeTab === 'messages' ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            <div className="relative">
+              <MessageSquare className="h-5 w-5 mb-0.5" />
+              {unreadMessages > 0 && (
+                <span className="absolute -top-1 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                  {unreadMessages > 99 ? '99+' : unreadMessages}
+                </span>
+              )}
+            </div>
+            <span>Messages</span>
+          </button>
+
+          {/* CRM Highlighted Bottom Tab */}
+          <button
+            type="button"
+            onClick={() => openTab('crm')}
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-xs transition active:scale-95 ${
+              activeTab === 'crm' ? 'text-cyan-400 font-semibold' : 'text-cyan-500/80 hover:text-cyan-300'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-0.5 shadow-sm">
+              <TableProperties className="h-4 w-4" />
+            </div>
+            <span>CRM</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openTab('team')}
+            className={`relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs transition active:scale-95 ${
+              activeTab === 'team' ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            <div className="relative">
+              <UsersRound className="h-5 w-5 mb-0.5" />
+              {unreadTeamMessages > 0 && (
+                <span className="absolute -top-1 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                  {unreadTeamMessages > 99 ? '99+' : unreadTeamMessages}
+                </span>
+              )}
+            </div>
+            <span>Team</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen(true)}
+            className="relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs text-gray-400 hover:text-gray-200 transition active:scale-95"
+          >
+            <div className="relative">
+              <Menu className="h-5 w-5 mb-0.5" />
+              {dueFollowUps > 0 && (
+                <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />
+              )}
+            </div>
+            <span>More</span>
+          </button>
+        </nav>
+      )}
 
       <Dialer
         selectedPhoneNumber={selectedPhoneNumber}

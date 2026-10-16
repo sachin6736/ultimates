@@ -370,11 +370,11 @@ function Services({ currentUser = null }) {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-gray-700 bg-gray-900 px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
+            className="flex-1 rounded-xl border border-gray-700 bg-gray-900 px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none sm:flex-initial"
           >
             <option value="all" className="bg-[#11151F] text-gray-200">All Statuses</option>
             <option value="active" className="bg-[#11151F] text-gray-200">Active Only</option>
@@ -384,7 +384,7 @@ function Services({ currentUser = null }) {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-xl border border-gray-700 bg-gray-900 px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
+            className="flex-1 rounded-xl border border-gray-700 bg-gray-900 px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none sm:flex-initial"
           >
             <option value="newest" className="bg-[#11151F] text-gray-200">Newest First</option>
             <option value="price_asc" className="bg-[#11151F] text-gray-200">Price: Low to High</option>
@@ -523,8 +523,8 @@ function Services({ currentUser = null }) {
       {/* Admin Add / Edit Service Modal */}
       {isModalOpen && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-gray-700 bg-[#161B28] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-800 px-5 py-4">
+          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#161B28] shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-800 px-5 py-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
                   {editingService ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -543,8 +543,8 @@ function Services({ currentUser = null }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5">
-              <div className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden p-5">
+              <div className="flex flex-1 flex-col gap-4 overflow-y-auto pr-1 thin-scrollbar">
                 {/* Service Selection */}
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-300">
@@ -681,7 +681,7 @@ function Services({ currentUser = null }) {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-800 pt-4">
+              <div className="mt-5 flex shrink-0 items-center justify-end gap-3 border-t border-gray-800 pt-4">
                 <button
                   type="button"
                   onClick={handleCloseModal}

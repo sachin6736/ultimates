@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { BACKEND_URL } from '../config/api.js';
 import { AppSkeletonTheme, Skeleton } from './ui/AppSkeleton.jsx';
 import InlineLoader from './ui/InlineLoader.jsx';
@@ -176,7 +177,8 @@ function InternalMessages({
 function InternalMessageDetails({
   currentUser,
   selectedUser,
-  onReadMessages
+  onReadMessages,
+  onBack
 }) {
   const selectedUserId = getUserId(selectedUser);
   const [messages, setMessages] = useState([]);
@@ -292,12 +294,25 @@ function InternalMessageDetails({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#0F1322]">
-      <div className="border-b border-gray-800 bg-[#161B28] px-5 py-4">
-        <p className="truncate text-sm font-semibold text-white">{selectedUser.name}</p>
-        <p className="truncate text-xs text-gray-400">{selectedUser.email || 'Team conversation'}</p>
+      <div className="flex items-center gap-3 border-b border-gray-800 bg-[#161B28] px-4 py-3 sm:px-5 sm:py-4">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-700 bg-gray-800 text-gray-300 transition hover:bg-gray-700 hover:text-white lg:hidden shrink-0"
+            aria-label="Back"
+            title="Back to team list"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-white">{selectedUser.name}</p>
+          <p className="truncate text-xs text-gray-400">{selectedUser.email || 'Team conversation'}</p>
+        </div>
       </div>
 
-      <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-auto p-5 thin-scrollbar">
+      <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-auto p-3 sm:p-5 thin-scrollbar">
         {loadingMessages ? (
           <TeamConversationSkeleton />
         ) : messages.length === 0 ? (
@@ -308,7 +323,7 @@ function InternalMessageDetails({
 
             return (
               <div key={message._id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[78%] rounded-xl px-3 py-2 ${
+                <div className={`max-w-[85%] sm:max-w-[78%] rounded-xl px-3 py-2 ${
                   mine
                     ? 'internal-message-outbound bg-[#059669] text-white'
                     : 'internal-message-inbound bg-gray-800 text-white'
@@ -324,21 +339,21 @@ function InternalMessageDetails({
         )}
       </div>
 
-      <form onSubmit={sendMessage} className="border-t border-gray-800 bg-[#161B28] p-4">
+      <form onSubmit={sendMessage} className="border-t border-gray-800 bg-[#161B28] p-3 sm:p-4">
         <textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          rows={3}
+          rows={2}
           maxLength={2000}
           placeholder="Write a team message..."
-          className="w-full resize-none rounded-xl border border-gray-700 bg-[#0F1322] px-4 py-3 text-sm text-white focus:border-[#059669]"
+          className="w-full resize-none rounded-xl border border-gray-700 bg-[#0F1322] px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-white focus:border-[#059669]"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
           <span className="text-[11px] text-gray-500">{body.length}/2000</span>
           <button
             type="submit"
             disabled={sending || !body.trim()}
-            className="rounded-xl bg-[#059669] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#047857] disabled:opacity-60"
+            className="rounded-xl bg-[#059669] px-4 py-2 sm:px-5 sm:py-2.5 text-sm font-semibold text-white transition hover:bg-[#047857] disabled:opacity-60"
           >
             {sending ? <InlineLoader label="Sending..." /> : 'Send'}
           </button>

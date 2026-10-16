@@ -194,8 +194,8 @@ function LeadCallLogsDrawer({ lead, isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[90] flex items-stretch justify-end bg-black/60">
-      <div className="flex h-full w-full max-w-2xl flex-col border-l border-gray-800 bg-[#0F1322] shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-gray-800 px-4 py-4">
+      <div className="flex h-full w-full max-w-2xl flex-col border-l border-gray-800 bg-[#0F1322] shadow-2xl pt-safe pb-safe">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-800 px-4 py-3.5 sm:py-4">
           <div className="min-w-0">
             <h3 className="crm-lead-name truncate text-lg font-semibold text-white [html[data-theme='day']_&]:text-slate-900">{lead?.name || 'Lead'}</h3>
             <p className="mt-1 text-sm text-gray-400">{formatPhoneNumber(phoneNumber)}</p>
@@ -211,7 +211,7 @@ function LeadCallLogsDrawer({ lead, isOpen, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-auto thin-scrollbar p-4">
+        <div className="flex-1 overflow-auto thin-scrollbar p-3.5 sm:p-4">
           {loading ? (
             <LeadCallLogsSkeleton />
           ) : error ? (
@@ -228,12 +228,12 @@ function LeadCallLogsDrawer({ lead, isOpen, onClose }) {
 
                 return (
                   <div key={logId} className="rounded-xl border border-gray-800 bg-gray-950 p-3">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
                       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${meta.iconClass}`}>
                         <PhoneIcon />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <p className="truncate text-sm font-semibold text-white">{formatPhoneNumber(log.phoneNumber)}</p>
                           <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300">{meta.directionLabel}</span>
                           <span className="rounded-full border border-gray-700 bg-gray-900 px-2.5 py-1 text-[11px] font-medium text-gray-300">{meta.statusLabel}</span>
@@ -241,7 +241,7 @@ function LeadCallLogsDrawer({ lead, isOpen, onClose }) {
                         <p className="mt-1 text-xs text-gray-500">{formatDateTime(getCallDate(log))} {log.duration ? `| ${Math.floor(Number(log.duration) / 60)}m ${Number(log.duration) % 60}s` : ''}</p>
                       </div>
 
-                      <div className="ml-auto flex shrink-0 items-center gap-1">
+                      <div className="ml-1.5 flex shrink-0 items-center gap-1 sm:ml-auto">
                         <button
                           type="button"
                           onClick={() => handleMakeCall(log.phoneNumber)}

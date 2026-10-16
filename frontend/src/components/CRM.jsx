@@ -832,14 +832,14 @@ function CRM() {
       )}
 
       <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
-        <form onSubmit={handleApplyFilters} className={`grid gap-3 md:grid-cols-3 ${currentUser?.role === 'admin' ? 'xl:grid-cols-6' : 'xl:grid-cols-5'}`}>
+        <form onSubmit={handleApplyFilters} className={`grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 ${currentUser?.role === 'admin' ? 'xl:grid-cols-6' : 'xl:grid-cols-5'}`}>
           <input
             type="text"
             name="search"
             value={filters.search}
             onChange={handleFilterChange}
             placeholder="Search contact, company, email, phone, service..."
-            className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+            className="col-span-1 rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none sm:col-span-2 md:col-span-3 xl:col-span-1"
           />
           <select name="status" value={filters.status} onChange={handleFilterChange} className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none">
             <option value="" className="bg-[#11151F] text-gray-200">All statuses</option>
@@ -860,9 +860,9 @@ function CRM() {
           </select>
           <input type="date" name="fromDate" value={filters.fromDate} onChange={handleFilterChange} className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none" />
           <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} className="rounded-xl border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none" />
-          <div className={`flex gap-2 md:col-span-3 ${currentUser?.role === 'admin' ? 'xl:col-span-6' : 'xl:col-span-5'}`}>
-            <button type="submit" className="rounded-xl bg-[#059669] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#047857]">Apply Filters</button>
-            <button type="button" onClick={handleResetFilters} className="rounded-xl border border-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-300 transition hover:border-gray-600 hover:text-white">Reset</button>
+          <div className={`col-span-1 flex gap-2 sm:col-span-2 md:col-span-3 ${currentUser?.role === 'admin' ? 'xl:col-span-6' : 'xl:col-span-5'}`}>
+            <button type="submit" className="flex-1 rounded-xl bg-[#059669] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#047857] sm:flex-initial">Apply Filters</button>
+            <button type="button" onClick={handleResetFilters} className="flex-1 rounded-xl border border-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-300 transition hover:border-gray-600 hover:text-white sm:flex-initial">Reset</button>
           </div>
         </form>
       </div>
@@ -1015,13 +1015,13 @@ function CRM() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5 lg:w-52">
+                    <div className="flex flex-col gap-2 lg:w-52 mt-3 lg:mt-0 pt-3 lg:pt-0 border-t border-gray-800/80 lg:border-t-0">
                       <select
                         aria-label={`Status for ${lead.name || 'lead'}`}
                         value={lead.disposition || 'New Lead'}
                         disabled={updatingLeadId === lead._id}
                         onChange={(event) => handleStatusChange(lead, event.target.value)}
-                        className={`h-8 rounded-lg border px-2.5 text-xs font-semibold outline-none transition-colors disabled:cursor-wait disabled:opacity-60 cursor-pointer ${statusStyle.select}`}
+                        className={`h-9 lg:h-8 rounded-lg border px-2.5 text-xs font-semibold outline-none transition-colors disabled:cursor-wait disabled:opacity-60 cursor-pointer ${statusStyle.select}`}
                       >
                         {LEAD_DISPOSITIONS.map((status) => (
                           <option key={status} value={status} className="bg-[#11151F] text-gray-200 py-1.5">
@@ -1053,29 +1053,31 @@ function CRM() {
                         </div>
                       )}
 
-                      <button
-                        type="button"
-                        onClick={() => handleCallLead(lead.phone)}
-                        disabled={!hasUsablePhone}
-                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 text-xs font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
-                        title={hasUsablePhone ? `Call ${lead.phone}` : 'No phone number'}
-                        aria-label={hasUsablePhone ? `Call ${lead.phone}` : 'No phone number to call'}
-                      >
-                        <Phone className="h-4 w-4" aria-hidden="true" />
-                        Make Call
-                      </button>
+                      <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-col lg:gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleCallLead(lead.phone)}
+                          disabled={!hasUsablePhone}
+                          className="inline-flex h-9 lg:h-8 items-center justify-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 text-xs font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
+                          title={hasUsablePhone ? `Call ${lead.phone}` : 'No phone number'}
+                          aria-label={hasUsablePhone ? `Call ${lead.phone}` : 'No phone number to call'}
+                        >
+                          <Phone className="h-4 w-4" aria-hidden="true" />
+                          <span>Make Call</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleMessageLead(lead)}
-                        disabled={!hasUsablePhone}
-                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 text-xs font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
-                        title={hasUsablePhone ? `Open SMS for ${lead.phone}` : 'No phone number'}
-                        aria-label={hasUsablePhone ? `Open SMS for ${lead.phone}` : 'No phone number to message'}
-                      >
-                        <MessageSquare className="h-4 w-4" aria-hidden="true" />
-                        Open SMS
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMessageLead(lead)}
+                          disabled={!hasUsablePhone}
+                          className="inline-flex h-9 lg:h-8 items-center justify-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 text-xs font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500"
+                          title={hasUsablePhone ? `Open SMS for ${lead.phone}` : 'No phone number'}
+                          aria-label={hasUsablePhone ? `Open SMS for ${lead.phone}` : 'No phone number to message'}
+                        >
+                          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                          <span>Open SMS</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1168,8 +1170,8 @@ function CRM() {
 
       {selectedNoteLead && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-gray-700 bg-gray-950 shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-800 px-4 py-3">
+          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-gray-700 bg-gray-950 shadow-2xl">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-800 px-4 py-3">
               <div className="min-w-0">
                 <h3 className="truncate text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">Notes / Requirements</h3>
                 <p className="crm-lead-name truncate text-sm text-gray-400 [html[data-theme='day']_&]:text-slate-700 font-medium">
@@ -1188,7 +1190,7 @@ function CRM() {
               </button>
             </div>
 
-            <div className="space-y-4 p-4">
+            <div className="flex-1 space-y-4 overflow-y-auto p-4 thin-scrollbar">
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">History / Current notes</p>
                 <NoteTimeline notes={selectedNoteLead.notes} />
@@ -1205,7 +1207,7 @@ function CRM() {
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-end gap-2 border-t border-gray-800 px-4 py-3">
+            <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-gray-800 px-4 py-3">
               <button
                 type="button"
                 onClick={() => {
@@ -1231,8 +1233,8 @@ function CRM() {
 
       {lostReasonModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-rose-900/60 bg-gray-950 p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-3 border-b border-gray-800 pb-3">
+          <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-rose-900/60 bg-gray-950 p-5 shadow-2xl">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-800 pb-3">
               <div>
                 <h3 className="flex items-center gap-2 text-base font-semibold text-white [html[data-theme='day']_&]:text-slate-900">
                   <span className="text-rose-400">Lost Reason</span>
@@ -1252,7 +1254,7 @@ function CRM() {
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1 thin-scrollbar">
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Lost Reason <span className="text-rose-400">*</span>
@@ -1281,7 +1283,7 @@ function CRM() {
               </div>
             </div>
 
-            <div className="mt-5 flex justify-end gap-2 border-t border-gray-800 pt-3">
+            <div className="mt-5 flex shrink-0 justify-end gap-2 border-t border-gray-800 pt-3">
               <button
                 type="button"
                 onClick={() => setLostReasonModal(null)}

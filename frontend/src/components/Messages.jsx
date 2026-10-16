@@ -372,7 +372,7 @@ function Messages({ selectedPhoneNumber = '', selectedLeadId = '', onRecipientUs
                 className="h-10 w-full rounded-xl border border-gray-700 bg-gray-800 px-3 text-sm text-white focus:border-[#059669]"
               />
             </div>
-            <div className="flex flex-wrap gap-2 self-end">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2 self-end">
               <button
                 type="button"
                 onClick={draftAiMessage}
@@ -468,7 +468,7 @@ function Messages({ selectedPhoneNumber = '', selectedLeadId = '', onRecipientUs
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 items-center gap-2">
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
                         {isUnread && (
                           <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" aria-label="Unread message" />
                         )}
@@ -479,7 +479,7 @@ function Messages({ selectedPhoneNumber = '', selectedLeadId = '', onRecipientUs
                         </span>
                         {message.leadName && (
                           <span className="truncate text-xs text-gray-400">
-                            {formatPhoneNumber(message.phoneNumber)}
+                            ({formatPhoneNumber(message.phoneNumber)})
                           </span>
                         )}
                       </div>
@@ -533,11 +533,11 @@ function Messages({ selectedPhoneNumber = '', selectedLeadId = '', onRecipientUs
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
                         {formatDateTime(message.createdAt)}
                       </span>
                       {getUserDisplayName(message) && (
-                        <p className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-emerald-400" title={`Assignee: ${getUserDisplayName(message)}`}>
+                        <p className="mt-1 hidden sm:flex items-center justify-end gap-1 text-xs font-medium text-emerald-400" title={`Assignee: ${getUserDisplayName(message)}`}>
                           <User className="h-3 w-3 shrink-0 opacity-75" />
                           <span className="truncate max-w-[120px] sm:max-w-[160px]">{getUserDisplayName(message)}</span>
                         </p>

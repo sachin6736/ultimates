@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { MessageSquare, Phone, Plus, Trash2 } from 'lucide-react';
 import { AppSkeletonTheme, Skeleton } from './ui/AppSkeleton.jsx';
 import InlineLoader from './ui/InlineLoader.jsx';
 import { confirmAction } from '../utils/confirmDialog.js';
@@ -176,13 +177,17 @@ function Contacts() {
   return (
     <div className="max-w-3xl mx-auto relative">
       <div className="flex justify-between items-center gap-3 mb-4">
-        <h2 className="text-lg font-semibold text-white">Contacts</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Contacts</h2>
+          <p className="text-xs text-gray-400">Manage address book and quick dial contacts</p>
+        </div>
         <button
           type="button"
-          onClick={() => setShowAddForm(true)}
-          className="bg-[#059669] hover:bg-[#047857] px-3 py-2 rounded-xl text-xs sm:text-sm text-white font-medium transition"
+          onClick={() => setShowAddForm((curr) => !curr)}
+          className="inline-flex items-center gap-1.5 bg-[#059669] hover:bg-[#047857] px-3.5 py-2 rounded-xl text-xs sm:text-sm text-white font-medium transition"
         >
-          + Add Contact
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          <span>{showAddForm ? 'Close' : 'Add Contact'}</span>
         </button>
       </div>
 
@@ -256,28 +261,31 @@ function Contacts() {
                 {contact.company && <p className="crm-company-name text-xs text-gray-400 mt-0.5 truncate [html[data-theme='day']_&]:text-slate-700 font-medium">{contact.company}</p>}
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center pt-2 sm:pt-0 border-t border-gray-800/60 sm:border-t-0">
                 <button
                   type="button"
                   onClick={() => handleCallClick(contact.phone)}
-                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl text-xs text-white font-medium transition"
+                  className="inline-flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 px-3 py-2 rounded-xl text-xs text-white font-medium transition"
                 >
-                  Call
+                  <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Call</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMessageClick(contact.phone)}
-                  className="bg-[#059669] hover:bg-[#047857] px-4 py-2 rounded-xl text-xs text-white font-medium transition"
+                  className="inline-flex items-center justify-center gap-1.5 bg-[#059669] hover:bg-[#047857] px-3 py-2 rounded-xl text-xs text-white font-medium transition"
                 >
-                  SMS
+                  <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>SMS</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteClick(contact._id)}
                   disabled={deletingContactId === contact._id}
-                  className="bg-red-600/80 hover:bg-red-700 px-3 py-2 rounded-xl text-xs text-white transition disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-1.5 bg-red-600/80 hover:bg-red-700 px-3 py-2 rounded-xl text-xs text-white transition disabled:opacity-70"
                 >
-                  {deletingContactId === contact._id ? <InlineLoader label="Deleting" size="xs" /> : 'Delete'}
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{deletingContactId === contact._id ? <InlineLoader label="Deleting" size="xs" /> : 'Delete'}</span>
                 </button>
               </div>
             </div>
