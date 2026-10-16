@@ -6,6 +6,7 @@ import LeadCallLogsDrawer from './LeadCallLogsDrawer.jsx';
 import { showErrorToast, showSuccessToast } from '../utils/toast.js';
 import { formatPhoneNumber } from '../utils/phone.js';
 import { BACKEND_URL } from '../config/api.js';
+import useModalHistory from '../hooks/useModalHistory.js';
 
 export const SERVICE_OPTIONS = [
   'Google Ads / PPC',
@@ -272,6 +273,24 @@ function CRM() {
   const [lostReasonModal, setLostReasonModal] = useState(null);
   const [savingLostReason, setSavingLostReason] = useState(false);
 
+  const closeCallLogs = useModalHistory(
+    Boolean(callLogsLeadId),
+    () => setCallLogsLeadId(null),
+    'crm-call-logs'
+  );
+
+  const closeNotes = useModalHistory(
+    Boolean(noteLeadId),
+    () => setNoteLeadId(null),
+    'crm-lead-notes'
+  );
+
+  const closeLostReason = useModalHistory(
+    Boolean(lostReasonModal),
+    () => setLostReasonModal(null),
+    'crm-lost-reason'
+  );
+
   const [updatingAiStatus, setUpdatingAiStatus] = useState(false);
 
   const authHeaders = useMemo(() => ({
@@ -500,7 +519,7 @@ function CRM() {
         lostReasonModal.lostReason || 'Price too high',
         lostReasonModal.lostReasonDetails || ''
       );
-      setLostReasonModal(null);
+      closeLostReason();
     } finally {
       setSavingLostReason(false);
     }
@@ -531,7 +550,7 @@ function CRM() {
         lead._id === leadId ? data.lead : lead
       )));
       setNoteDrafts((current) => ({ ...current, [leadId]: '' }));
-      setNoteLeadId(null);
+      closeNotes();
       showSuccessToast('Note added');
     } catch (error) {
       showErrorToast(error.message || 'Failed to save note');
@@ -1181,7 +1200,7 @@ function CRM() {
               </div>
               <button
                 type="button"
-                onClick={() => setNoteLeadId(null)}
+                onClick={closeNotes}
                 className="rounded-lg px-2 py-1 text-sm font-semibold text-gray-400 transition hover:bg-gray-800 hover:text-white"
                 title="Close"
                 aria-label="Close notes"
@@ -1211,7 +1230,7 @@ function CRM() {
               <button
                 type="button"
                 onClick={() => {
-                  setNoteLeadId(null);
+                  closeNotes();
                   setNoteDrafts((current) => ({ ...current, [selectedNoteLead._id]: '' }));
                 }}
                 className="rounded-xl border border-gray-700 px-3 py-2 text-sm font-semibold text-gray-300 transition hover:border-gray-600 hover:text-white"
@@ -1245,7 +1264,7 @@ function CRM() {
               </div>
               <button
                 type="button"
-                onClick={() => setLostReasonModal(null)}
+                onClick={closeLostReason}
                 className="rounded-lg px-2 py-1 text-sm font-semibold text-gray-400 transition hover:bg-gray-800 hover:text-white"
                 title="Cancel"
                 aria-label="Close lost reason modal"
@@ -1286,7 +1305,7 @@ function CRM() {
             <div className="mt-5 flex shrink-0 justify-end gap-2 border-t border-gray-800 pt-3">
               <button
                 type="button"
-                onClick={() => setLostReasonModal(null)}
+                onClick={closeLostReason}
                 className="rounded-xl border border-gray-700 px-3.5 py-2 text-sm font-semibold text-gray-300 hover:border-gray-600 hover:text-white"
               >
                 Cancel
@@ -1307,7 +1326,7 @@ function CRM() {
       <LeadCallLogsDrawer
         lead={selectedCallLogsLead}
         isOpen={Boolean(selectedCallLogsLead)}
-        onClose={() => setCallLogsLeadId(null)}
+        onClose={closeCallLogs}
       />
     </div>
   );

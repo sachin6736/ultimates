@@ -42,6 +42,7 @@ import {
   showTeamMessageToast
 } from './utils/toast.js';
 import { normalizePhone, formatPhoneNumber } from './utils/phone.js';
+import toast from 'react-hot-toast';
 import './App.css';
 import { BACKEND_URL } from './config/api.js';
 
@@ -118,6 +119,14 @@ const stopFollowUpReminderAlarm = () => {
   }
   followUpAlarm.audioContext = null;
 };
+const VALID_TABS = ['history', 'contacts', 'messages', 'team', 'followups', 'services', 'crm', 'admin', 'settings'];
+
+const getInitialTab = () => {
+  if (typeof window === 'undefined') return 'history';
+  const rawHash = (window.location.hash || '').replace(/^#\/?/, '').split('?')[0];
+  return VALID_TABS.includes(rawHash) ? rawHash : 'history';
+};
+
 const TAB_LABELS = {
   admin: 'Admin',
   history: 'Calls',
@@ -155,7 +164,7 @@ function NavIcon({ type }) {
 }
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [activeTab, setActiveTab] = useState('history');
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState('');
   const [selectedMessageNumber, setSelectedMessageNumber] = useState('');
   const [selectedMessageLeadId, setSelectedMessageLeadId] = useState('');
@@ -169,28 +178,217 @@ function App() {
   const [showDialerModal, setShowDialerModal] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+
   const activeTabRef = useRef(activeTab);
   const currentUserRef = useRef(currentUser);
   const selectedTeamUserRef = useRef(selectedTeamUser);
+  const conversationNumberRef = useRef(conversationNumber);
+  const conversationLeadIdRef = useRef(conversationLeadId);
+  const mobileDrawerOpenRef = useRef(mobileDrawerOpen);
+  const showDialerModalRef = useRef(showDialerModal);
+  const isPoppingStateRef = useRef(false);
+  const lastBackPressRef = useRef(0);
   const isAdmin = currentUser?.role === 'admin';
 
-  const openTab = useCallback((tabId) => {
-    setActiveTab(tabId);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+  useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
+  useEffect(() => { selectedTeamUserRef.current = selectedTeamUser; }, [selectedTeamUser]);
+  useEffect(() => { conversationNumberRef.current = conversationNumber; }, [conversationNumber]);
+  useEffect(() => { conversationLeadIdRef.current = conversationLeadId; }, [conversationLeadId]);
+  useEffect(() => { mobileDrawerOpenRef.current = mobileDrawerOpen; }, [mobileDrawerOpen]);
+  useEffect(() => { showDialerModalRef.current = showDialerModal; }, [showDialerModal]);
+
+  const pushNavState = useCallback(({
+    tab = activeTabRef.current,
+    conversationNumber = conversationNumberRef.current,
+    conversationLeadId = conversationLeadIdRef.current,
+    selectedTeamUserId = selectedTeamUserRef.current ? getUserId(selectedTeamUserRef.current) : null,
+    drawerOpen = false,
+    dialerOpen = false,
+    replace = false
+  } = {}) => {
+    if (isPoppingStateRef.current) return;
+
+    const navState = {
+      isAppNav: true,
+      tab,
+      conversationNumber: conversationNumber || '',
+      conversationLeadId: conversationLeadId || '',
+      selectedTeamUserId: selectedTeamUserId || null,
+      drawerOpen: Boolean(drawerOpen),
+      dialerOpen: Boolean(dialerOpen)
+    };
+
+    let hash = `#${tab}`;
+    if (conversationNumber) {
+      hash += `?conv=${encodeURIComponent(conversationNumber)}`;
+    } else if (selectedTeamUserId) {
+      hash += `?user=${encodeURIComponent(selectedTeamUserId)}`;
+    } else if (drawerOpen) {
+      hash += '?menu=1';
+    } else if (dialerOpen) {
+      hash += '?dialer=1';
+    }
+
+    try {
+      if (replace) {
+        window.history.replaceState(navState, '', hash);
+      } else {
+        window.history.pushState(navState, '', hash);
+      }
+    } catch (err) {
+      console.warn('Navigation state update failed:', err);
+    }
+  }, []);
+
+  const openTab = useCallback((tabId, { skipHistory = false } = {}) => {
+    const nextTab = VALID_TABS.includes(tabId) ? tabId : 'history';
+
+    if (
+      nextTab === activeTabRef.current &&
+      !conversationNumberRef.current &&
+      !selectedTeamUserRef.current &&
+      !mobileDrawerOpenRef.current &&
+      !showDialerModalRef.current
+    ) {
+      return;
+    }
+
+    setActiveTab(nextTab);
     setMobileDrawerOpen(false);
-    if (tabId !== 'team') {
+    setShowDialerModal(false);
+    setConversationNumber('');
+    setConversationLeadId('');
+
+    if (nextTab !== 'team') {
       setSelectedTeamUser(null);
     }
-    if (tabId === 'messages') {
+    if (nextTab === 'messages') {
       setUnreadMessages(0);
     }
-    if (tabId === 'team') {
+    if (nextTab === 'team') {
       setUnreadTeamMessages(0);
       window.dispatchEvent(new Event('refreshInternalMessages'));
     }
-    if (tabId === 'followups') {
+    if (nextTab === 'followups') {
       dismissFollowUpReminderToast();
     }
+
+    if (!skipHistory) {
+      pushNavState({
+        tab: nextTab,
+        conversationNumber: '',
+        conversationLeadId: '',
+        selectedTeamUserId: null,
+        drawerOpen: false,
+        dialerOpen: false
+      });
+    }
+  }, [pushNavState]);
+
+  const closeConversation = useCallback(() => {
+    if (window.history.state?.conversationNumber) {
+      window.history.back();
+    } else {
+      setConversationNumber('');
+      setConversationLeadId('');
+      pushNavState({
+        tab: activeTabRef.current,
+        conversationNumber: '',
+        conversationLeadId: '',
+        replace: true
+      });
+    }
+  }, [pushNavState]);
+
+  const handleSelectTeamUser = useCallback((user) => {
+    setSelectedTeamUser(user);
+    setMobileDrawerOpen(false);
+    setShowDialerModal(false);
+
+    if (user) {
+      pushNavState({
+        tab: 'team',
+        conversationNumber: '',
+        conversationLeadId: '',
+        selectedTeamUserId: getUserId(user),
+        drawerOpen: false,
+        dialerOpen: false
+      });
+    }
+  }, [pushNavState]);
+
+  const closeTeamChat = useCallback(() => {
+    if (window.history.state?.selectedTeamUserId) {
+      window.history.back();
+    } else {
+      setSelectedTeamUser(null);
+      pushNavState({
+        tab: 'team',
+        selectedTeamUserId: null,
+        replace: true
+      });
+    }
+  }, [pushNavState]);
+
+  const openMobileDrawer = useCallback(() => {
+    setMobileDrawerOpen(true);
+    pushNavState({
+      drawerOpen: true,
+      dialerOpen: false
+    });
+  }, [pushNavState]);
+
+  const closeMobileDrawer = useCallback(() => {
+    if (window.history.state?.drawerOpen) {
+      window.history.back();
+    } else {
+      setMobileDrawerOpen(false);
+    }
   }, []);
+
+  const openNewCall = useCallback(() => {
+    setSelectedPhoneNumber('');
+    setShowDialerModal(true);
+    window.dispatchEvent(new CustomEvent('openDialer', { detail: { phoneNumber: '' } }));
+
+    pushNavState({
+      drawerOpen: false,
+      dialerOpen: true
+    });
+  }, [pushNavState]);
+
+  const closeDialer = useCallback(() => {
+    if (window.history.state?.dialerOpen) {
+      window.history.back();
+    } else {
+      setShowDialerModal(false);
+    }
+  }, []);
+
+  const navigateBack = useCallback(() => {
+    if (mobileDrawerOpenRef.current) {
+      closeMobileDrawer();
+      return;
+    }
+    if (showDialerModalRef.current) {
+      closeDialer();
+      return;
+    }
+    if (conversationNumberRef.current) {
+      closeConversation();
+      return;
+    }
+    if (selectedTeamUserRef.current) {
+      closeTeamChat();
+      return;
+    }
+    if (window.history.length > 1 && window.history.state?.isAppNav && !window.history.state?.isRootAnchor) {
+      window.history.back();
+    } else {
+      openTab('history');
+    }
+  }, [closeMobileDrawer, closeDialer, closeConversation, closeTeamChat, openTab]);
 
   // Click-to-Call from Contacts
   useEffect(() => {
@@ -198,10 +396,14 @@ function App() {
       const { phoneNumber } = event.detail;
       setSelectedPhoneNumber(phoneNumber);
       setShowDialerModal(true);        // Open Dialer as popup
+      pushNavState({
+        drawerOpen: false,
+        dialerOpen: true
+      });
     };
     window.addEventListener('callContact', handleCallContact);
     return () => window.removeEventListener('callContact', handleCallContact);
-  }, []);
+  }, [pushNavState]);
 
   useEffect(() => {
     const handlePasteNumberOnDialer = (event) => {
@@ -210,11 +412,15 @@ function App() {
 
       setSelectedPhoneNumber(phoneNumber);
       setShowDialerModal(true);
+      pushNavState({
+        drawerOpen: false,
+        dialerOpen: true
+      });
     };
 
     window.addEventListener('pasteNumberOnDialer', handlePasteNumberOnDialer);
     return () => window.removeEventListener('pasteNumberOnDialer', handlePasteNumberOnDialer);
-  }, []);
+  }, [pushNavState]);
 
   useEffect(() => {
     const handleMessageContact = (event) => {
@@ -227,18 +433,6 @@ function App() {
     window.addEventListener('messageContact', handleMessageContact);
     return () => window.removeEventListener('messageContact', handleMessageContact);
   }, [openTab]);
-
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
-
-  useEffect(() => {
-    currentUserRef.current = currentUser;
-  }, [currentUser]);
-
-  useEffect(() => {
-    selectedTeamUserRef.current = selectedTeamUser;
-  }, [selectedTeamUser]);
 
   useEffect(() => {
     const userId = getUserId(currentUser);
@@ -484,22 +678,151 @@ function App() {
       const { phoneNumber, leadId } = event.detail;
       setConversationNumber(phoneNumber);
       setConversationLeadId(leadId || '');
+      pushNavState({
+        conversationNumber: phoneNumber,
+        conversationLeadId: leadId || ''
+      });
     };
 
     window.addEventListener('openConversation', handleOpenConversation);
     return () => window.removeEventListener('openConversation', handleOpenConversation);
-  }, []);
+  }, [pushNavState]);
+
+  // Root history session anchor & exit guard setup
+  useEffect(() => {
+    if (!token) return;
+
+    const currentHashTab = getInitialTab();
+    const currentState = window.history.state;
+
+    // If there is no navigation state recorded in the browser history stack
+    if (!currentState?.isAppNav) {
+      window.history.replaceState({ isAppNav: true, isRootExitGuard: true }, '', '#exit-guard');
+      const initialNav = {
+        isAppNav: true,
+        isRootAnchor: currentHashTab === 'history',
+        tab: currentHashTab,
+        conversationNumber: '',
+        conversationLeadId: '',
+        selectedTeamUserId: null,
+        drawerOpen: false,
+        dialerOpen: false
+      };
+      window.history.pushState(initialNav, '', `#${currentHashTab}`);
+    }
+  }, [token]);
+
+  // Global popstate handler (Hardware Back, Browser Back, iOS Back Swipe)
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const state = event.state;
+
+      // Case 1: Reached the bottom exit guard
+      if (state?.isRootExitGuard) {
+        const now = Date.now();
+        if (now - lastBackPressRef.current < 2000) {
+          // Double back within 2 seconds: let the browser exit / go back to browser home
+          window.history.back();
+        } else {
+          lastBackPressRef.current = now;
+          toast('Press back again to exit', {
+            id: 'back-exit-guard',
+            duration: 2000,
+            icon: '🚪',
+            style: {
+              background: '#1F2937',
+              color: '#F9FAFB',
+              borderRadius: '12px',
+              border: '1px solid #374151',
+              fontSize: '13px',
+              fontWeight: '500'
+            }
+          });
+          // Restore root anchor so user remains inside the app
+          window.history.pushState(
+            {
+              isAppNav: true,
+              isRootAnchor: true,
+              tab: 'history',
+              conversationNumber: '',
+              conversationLeadId: '',
+              selectedTeamUserId: null,
+              drawerOpen: false,
+              dialerOpen: false
+            },
+            '',
+            '#history'
+          );
+          setActiveTab('history');
+          setConversationNumber('');
+          setConversationLeadId('');
+          setSelectedTeamUser(null);
+          setMobileDrawerOpen(false);
+          setShowDialerModal(false);
+        }
+        return;
+      }
+
+      // Case 2: Sub-modal pop (handled by useModalHistory hook)
+      if (state?.subModal) {
+        return;
+      }
+
+      // Case 3: App navigation pop (switching tabs, closing details/drawer/dialer)
+      if (state?.isAppNav) {
+        isPoppingStateRef.current = true;
+
+        const nextTab = VALID_TABS.includes(state.tab) ? state.tab : 'history';
+        setActiveTab(nextTab);
+        setConversationNumber(state.conversationNumber || '');
+        setConversationLeadId(state.conversationLeadId || '');
+        setMobileDrawerOpen(Boolean(state.drawerOpen));
+        setShowDialerModal(Boolean(state.dialerOpen));
+
+        if (!state.selectedTeamUserId) {
+          setSelectedTeamUser(null);
+        }
+
+        setTimeout(() => {
+          isPoppingStateRef.current = false;
+        }, 50);
+        return;
+      }
+
+      // Case 4: Untracked entry popped
+      if (
+        activeTabRef.current !== 'history' ||
+        conversationNumberRef.current ||
+        selectedTeamUserRef.current ||
+        mobileDrawerOpenRef.current ||
+        showDialerModalRef.current
+      ) {
+        openTab('history', { skipHistory: true });
+        window.history.pushState(
+          {
+            isAppNav: true,
+            isRootAnchor: true,
+            tab: 'history',
+            conversationNumber: '',
+            conversationLeadId: '',
+            selectedTeamUserId: null,
+            drawerOpen: false,
+            dialerOpen: false
+          },
+          '',
+          '#history'
+        );
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [openTab]);
 
   const clearSelectedMessageNumber = useCallback(() => {
     setSelectedMessageNumber('');
     setSelectedMessageLeadId('');
   }, []);
-
-  const openNewCall = () => {
-    setSelectedPhoneNumber('');
-    setShowDialerModal(true);
-    window.dispatchEvent(new CustomEvent('openDialer', { detail: { phoneNumber: '' } }));
-  };
 
   const handleLogout = async () => {
     const currentToken = localStorage.getItem('token');
@@ -577,9 +900,21 @@ function App() {
       {/* Mobile Top App Bar */}
       <header className="shrink-0 bg-[#11151F] border-b border-gray-800 flex items-center justify-between px-3.5 py-2.5 pt-safe md:hidden z-20">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-            <NavIcon type={activeTab} />
-          </div>
+          {activeTab !== 'history' ? (
+            <button
+              type="button"
+              onClick={navigateBack}
+              className="p-1.5 -ml-1 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition active:scale-95 shrink-0 flex items-center justify-center"
+              title="Go back"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          ) : (
+            <div className="w-8 h-8 bg-gradient-to-br from-[#059669] via-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+              <NavIcon type={activeTab} />
+            </div>
+          )}
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-base font-bold tracking-tight text-white truncate">Ultimate</span>
@@ -615,7 +950,7 @@ function App() {
           {/* Drawer Menu Button */}
           <button
             type="button"
-            onClick={() => setMobileDrawerOpen(true)}
+            onClick={openMobileDrawer}
             className="relative p-2 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition active:scale-95"
             title="Open navigation menu"
             aria-label="Open navigation menu"
@@ -634,7 +969,7 @@ function App() {
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-            onClick={() => setMobileDrawerOpen(false)}
+            onClick={closeMobileDrawer}
             aria-hidden="true"
           />
 
@@ -653,7 +988,7 @@ function App() {
               </div>
               <button
                 type="button"
-                onClick={() => setMobileDrawerOpen(false)}
+                onClick={closeMobileDrawer}
                 className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition"
                 aria-label="Close menu"
               >
@@ -702,7 +1037,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => {
-                  setMobileDrawerOpen(false);
+                  closeMobileDrawer();
                   openNewCall();
                 }}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition text-left mt-2"
@@ -725,7 +1060,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => {
-                  setMobileDrawerOpen(false);
+                  closeMobileDrawer();
                   confirmLogout();
                 }}
                 className="flex w-full items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:bg-red-950/30 transition"
@@ -817,10 +1152,7 @@ function App() {
           <ConversationDetails
             phoneNumber={conversationNumber}
             leadId={conversationLeadId}
-            onClose={() => {
-              setConversationNumber('');
-              setConversationLeadId('');
-            }}
+            onClose={closeConversation}
           />
         </div>
       ) : isMobileTeamChatOpen ? (
@@ -829,7 +1161,7 @@ function App() {
             currentUser={currentUser}
             selectedUser={selectedTeamUser}
             onReadMessages={refreshUnreadTeamMessages}
-            onBack={() => setSelectedTeamUser(null)}
+            onBack={closeTeamChat}
           />
         </div>
       ) : (
@@ -871,7 +1203,7 @@ function App() {
               <InternalMessages
                 currentUser={currentUser}
                 selectedUserId={getUserId(selectedTeamUser)}
-                onSelectUser={setSelectedTeamUser}
+                onSelectUser={handleSelectTeamUser}
                 onReadMessages={refreshUnreadTeamMessages}
               />
             )}
@@ -908,10 +1240,7 @@ function App() {
           <ConversationDetails
             phoneNumber={conversationNumber}
             leadId={conversationLeadId}
-            onClose={() => {
-              setConversationNumber('');
-              setConversationLeadId('');
-            }}
+            onClose={closeConversation}
           />
         )}
       </div>
@@ -985,7 +1314,7 @@ function App() {
 
           <button
             type="button"
-            onClick={() => setMobileDrawerOpen(true)}
+            onClick={openMobileDrawer}
             className="relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs text-gray-400 hover:text-gray-200 transition active:scale-95"
           >
             <div className="relative">
@@ -1002,7 +1331,7 @@ function App() {
       <Dialer
         selectedPhoneNumber={selectedPhoneNumber}
         isOpen={showDialerModal}
-        onClose={() => setShowDialerModal(false)}
+        onClose={closeDialer}
         currentUser={currentUser}
       />
 

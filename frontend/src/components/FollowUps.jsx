@@ -12,6 +12,7 @@ import { AppSkeletonTheme, Skeleton } from './ui/AppSkeleton.jsx';
 import InlineLoader from './ui/InlineLoader.jsx';
 import { confirmAction } from '../utils/confirmDialog.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.js';
+import useModalHistory from '../hooks/useModalHistory.js';
 
 import { BACKEND_URL } from '../config/api.js';
 
@@ -95,6 +96,9 @@ function FollowUps({ onDueCountChange, currentUser }) {
   const [selectedNote, setSelectedNote] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
+
+  const closeForm = useModalHistory(showForm, () => setShowForm(false), 'followups-form');
+  const closeNoteModal = useModalHistory(Boolean(selectedNote), () => setSelectedNote(null), 'followups-note');
 
   const authHeaders = useMemo(() => ({
     Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -192,7 +196,7 @@ function FollowUps({ onDueCountChange, currentUser }) {
       if (!res.ok) throw new Error(data.message || 'Failed to create follow-up');
 
       setForm(emptyForm);
-      setShowForm(false);
+      closeForm();
       showSuccessToast('Follow-up saved');
       window.dispatchEvent(new Event('refreshFollowUps'));
       fetchFollowUps({ silent: true });
@@ -307,7 +311,13 @@ function FollowUps({ onDueCountChange, currentUser }) {
         </div>
         <button
           type="button"
-          onClick={() => setShowForm((current) => !current)}
+          onClick={() => {
+            if (showForm) {
+              closeForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
           className="rounded-xl bg-[#059669] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#047857]"
         >
           {showForm ? 'Close' : 'Save Follow-up'}
@@ -508,7 +518,7 @@ function FollowUps({ onDueCountChange, currentUser }) {
           <div className="relative w-full max-w-sm rounded-lg border border-gray-800 bg-[#0B1220] p-3 shadow-2xl ring-1 ring-white/5">
             <button
               type="button"
-              onClick={() => setSelectedNote(null)}
+              onClick={closeNoteModal}
               className="absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-600"
               title="Close note"
               aria-label="Close note"

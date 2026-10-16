@@ -19,6 +19,7 @@ import InlineLoader from './ui/InlineLoader.jsx';
 import { confirmAction } from '../utils/confirmDialog.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.js';
 import { BACKEND_URL } from '../config/api.js';
+import useModalHistory from '../hooks/useModalHistory.js';
 
 export const STANDARD_SERVICES = [
   'Google Ads / PPC',
@@ -149,11 +150,19 @@ function Services({ currentUser = null }) {
     setIsModalOpen(true);
   };
 
+  const closeServiceModal = useModalHistory(
+    isModalOpen,
+    () => {
+      setIsModalOpen(false);
+      setEditingService(null);
+      setForm(emptyForm);
+    },
+    'services-modal'
+  );
+
   const handleCloseModal = () => {
     if (submitting) return;
-    setIsModalOpen(false);
-    setEditingService(null);
-    setForm(emptyForm);
+    closeServiceModal();
   };
 
   const handleFormChange = (e) => {

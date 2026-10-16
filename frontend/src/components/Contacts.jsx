@@ -4,6 +4,7 @@ import { AppSkeletonTheme, Skeleton } from './ui/AppSkeleton.jsx';
 import InlineLoader from './ui/InlineLoader.jsx';
 import { confirmAction } from '../utils/confirmDialog.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.js';
+import useModalHistory from '../hooks/useModalHistory.js';
 
 import { BACKEND_URL } from '../config/api.js';
 
@@ -47,6 +48,9 @@ function Contacts() {
     email: '',
     company: ''
   });
+
+  const closeAddForm = useModalHistory(showAddForm, () => setShowAddForm(false), 'contacts-add');
+
   const fetchContacts = useCallback(async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/contacts`, {
@@ -107,7 +111,7 @@ function Contacts() {
 
       showSuccessToast('Contact added successfully');
       setNewContact({ name: '', phone: '', email: '', company: '' });
-      setShowAddForm(false);
+      closeAddForm();
       fetchContacts();
     } catch (error) {
       showErrorToast(error.message || 'Failed to add contact');
@@ -183,7 +187,13 @@ function Contacts() {
         </div>
         <button
           type="button"
-          onClick={() => setShowAddForm((curr) => !curr)}
+          onClick={() => {
+            if (showAddForm) {
+              closeAddForm();
+            } else {
+              setShowAddForm(true);
+            }
+          }}
           className="inline-flex items-center gap-1.5 bg-[#059669] hover:bg-[#047857] px-3.5 py-2 rounded-xl text-xs sm:text-sm text-white font-medium transition"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
